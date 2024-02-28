@@ -3,10 +3,10 @@
 Hi! Welcome to QR Dental Clinic project. This project is based on automating the appointment process flow using QR code and real time data analysis.
 
 # Prerequisites
- 1. Python 3.7+
- 2. VScode/Pycharm/any IDE
- 3. Git
- 4. An account on github.com
+ 1. Python 3.7+ (https://www.python.org/downloads/release/python-3818/)
+ 2. VScode/Pycharm/any IDE (VS Code - https://code.visualstudio.com/download) | (Pycharm - https://www.jetbrains.com/pycharm/download/?section=windows)
+ 3. An account on github.com (https://github.com/)
+ 4. Git intall and local login (https://git-scm.com/downloads)
 
 
 ## Initial Setup Guide (One-time)
