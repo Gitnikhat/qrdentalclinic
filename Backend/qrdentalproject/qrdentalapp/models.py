@@ -70,7 +70,7 @@ class DoctorProfile(models.Model):
     
 
 class Patient(models.Model):
-    uu = models.UUIDField(unique=True, default=uuid4())
+    uu = models.UUIDField(unique=True)
     name = models.CharField(max_length= 250)
     phone = models.CharField(max_length= 10)
     email = models.CharField(max_length=250) #username
