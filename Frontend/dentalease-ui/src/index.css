@@ -10,13 +10,14 @@ body {
   font-family: "Poppins", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: url('./Components/Assets/dentist-office-dental-1.jpg') no-repeat;
-  background-position: center;
-  background-size: cover;
+  /* display: flex; */
+  /* align-items: center; */
+  /* justify-content: center; */
+  /* min-height: 100vh; */
+  /* background: url('./Components/Assets/withooth.jpg') no-repeat; */
+  /* background-position: center; */
+  /* background-size: cover; */
+  /* backdrop-filter: blur(1px); */
 }
 
 code {

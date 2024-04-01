@@ -1,0 +1,61 @@
+{
+  "Header": {
+    "title":"Discover Your Seamless Smiles",
+    "paragraph": "Welcome to Dentalease, your one-stop destination for hassle-free dental appointments. Experience the ease of scheduling and managing your dental care like never before. Your journey to a radiant smile begins now."
+  },
+  "About": {
+    "paragraph": "At Dentalease, we strive to revolutionize your dental care experience. We're passionate about transforming the way you experience dental care. With a focus on convenience, quality, and personalized service, we're dedicated to helping you achieve and maintain a healthy, radiant smile.",
+    "Why": [
+      "Seamless Booking Process",
+      "Expert Dental Professionals",
+      "Cutting-edge Technology",
+      "Personalized Care Plans"
+    ],
+    "Why2": [
+      "Transparent Process",
+      "Focus on Patient Comfort",
+      "Affordable Pricing",
+      "Commitment to Excellence"
+    ]
+  },
+  "Contact": {
+    "address": "Ankola, Karnataka India",
+    "phone": "+91XXXXXX51X",
+    "email": "test@test.com",
+    "facebook": "fb.com",
+    "twitter": "twitter.com",
+    "youtube": "youtube.com"
+  },
+  "Features": [
+    {
+      "icon": "fa-solid fa-tooth",
+      "title": "Dental Cleaning",
+      "text": "Routine procedure to remove plaque, tartar, and stains, preventing cavities and gum disease."
+    },
+    {
+      "icon": "fa-solid fa-tooth",
+      "title": "Dental Fillings",
+      "text": "Repair cavities or minor fractures by removing damaged portions and filling with materials like composite resin."
+    },
+    {
+      "icon": "fa-solid fa-tooth",
+      "title": "Root Canal Therapy",
+      "text": "Treatment for infected tooth pulp involves removing the infected tissue, cleaning, and sealing the root canal."
+    },
+    {
+      "icon": "fa-solid fa-tooth",
+      "title": "Dental Bridges",
+      "text": "Fixed prosthetic devices replace missing teeth by bridging the gap between adjacent teeth."
+    },
+    {
+      "icon": "fa-solid fa-tooth",
+      "title": "Dental Crowns",
+      "text": "Custom-made restorations that cover damaged teeth, restoring shape, strength, and appearance."
+    },
+    {
+      "icon": "fa-solid fa-tooth",
+      "title": "Dental Implants",
+      "text": "Titanium posts implanted into the jawbone to replace missing teeth, providing a stable foundation for dental restorations."
+    }
+  ]
+}
