@@ -1,10 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
-import Register from './Components/Register/Register'; 
-import ForgotPassword from './Components/ForgotPassword/ForgotPassword';
+
 import ErrorPage from "./ErrorPage";
+import LoginForm from './Components/Authentication/LoginForm';
+import Register from './Components/Authentication/Register';
+import ForgotPassword from './Components/Authentication/ForgotPassword';
+
+import './index.css';
+
 
 import reportWebVitals from './reportWebVitals';
 import {
@@ -17,6 +21,10 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     errorElement: <ErrorPage />,
+  },
+  {
+    path: "login",
+    element: <LoginForm />,
   },
   {
     path: "register",

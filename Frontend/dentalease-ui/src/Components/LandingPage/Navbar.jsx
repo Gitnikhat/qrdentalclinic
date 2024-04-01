@@ -48,7 +48,7 @@ export const Navbar = (props) => {
               </a>
             </li>
             <li>
-              <a href="" className="login-signup-link">
+              <a href="/login" className="login-signup-link">
                 Login/Signup
               </a>
             </li>
