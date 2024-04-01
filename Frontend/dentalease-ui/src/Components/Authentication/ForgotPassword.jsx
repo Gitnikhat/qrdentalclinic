@@ -6,7 +6,7 @@ import './authentication.css';
 const ForgotPassword = () => {
 
     return (
-        <div id="auth-wrapper-container">
+        <div id="authentication-page">
             <div className="auth-wrapper">
                 <form action="" method="post">
                     <h1>Forgot Password</h1>

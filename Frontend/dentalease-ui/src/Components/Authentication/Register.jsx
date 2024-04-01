@@ -8,7 +8,7 @@ import './authentication.css';
 const Register = () => {
 
     return (
-        <div id="auth-wrapper-container">
+        <div id="authentication-page">
             <div className="auth-wrapper">
                 <form action="" method="post">
                     <h1>Register</h1>
