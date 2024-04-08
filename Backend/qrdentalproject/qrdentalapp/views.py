@@ -4,12 +4,13 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 import os
 import uuid
 
 from .appconstants.responseconstants import *
-from .models import Patient, Users
+from .models import Patient, Users, Treatments
 
 import pyqrcode
 
@@ -39,10 +40,11 @@ class RegisterPatient(APIView):
             'name': request.data.get('name', None),
             'phone': request.data.get('phone', None),
             'email': request.data.get('email', None),
-            'image': request.FILES.get("file", None),
+            # 'image': request.FILES.get("file", None),
             'age': request.data.get('age', None),
-            'adhaar_num': request.data.get('adhaar_num', None),
+            # 'adhaar_num': request.data.get('adhaar_num', None),
             'gender': request.data.get('gender', None),
+            'address': request.data.get('address', ""),
         }
         password = request.data.get('password', None)
         obj = Patient.objects.create(**data)
@@ -52,7 +54,7 @@ class RegisterPatient(APIView):
 
     def generate_profile_qr(self, uu):
         new_profile = Patient.objects.get(uu=uu)
-        s = "www.geeksforgeeks.org/12345"
+        s = "/profile?id=" + str(uu)
         url = pyqrcode.create(s)
 
         media_root = settings.MEDIA_ROOT
@@ -85,6 +87,52 @@ class RegisterPatient(APIView):
 def view_profile(request):
     import uuid
     uu = uuid.UUID(request.GET.get('id'))
-    profile = Patient.objects.get(uu= uu)
-    return msg_and_status_response("Data retrived", status.HTTP_200_OK)
+    print(uu)
+    record = None
+    try:
+        record = Patient.objects.get(uu= uu)
+    except ObjectDoesNotExist as obe:
+        print("An error occured while retrieving profile: {obe}")
+        return msg_and_status_response("Patient profile not found.", status.HTTP_404_NOT_FOUND)
+    data = {
+        'name': record.name,
+        'phone': record.phone,
+        'email': record.email,
+        'gender': record.gender,
+        'age': record.age,
+        'profile_qr': record.profile_qr.url,
+        'address': record.address
+    }
+    return data_and_status_response(data, status.HTTP_200_OK)
         
+class TreatmentsView(APIView):
+
+    def post(self, request):
+        print(request.data)
+        data = {
+            'name': request.data.get('name', None),
+            'duration_minutes': request.data.get('duration', 0),
+            'description': request.data.get('description', "Default dental treatment description."),
+            'visibility_type': request.data.get('visibility', "1")
+        }
+        obj = Treatments.objects.create(**data)
+        print(obj.uu)
+        return  msg_and_status_response("Treatment created", status.HTTP_201_CREATED)
+
+    def get(self, request):
+        uuid = request.GET.get('id')
+        record = None
+        try:
+            record = Treatments.objects.get(uu= uuid)
+        except Exception as ex:
+            print(f"An error occured while trying to fetch treatments: {ex}")
+        if record:
+            data = {
+                'Name': record.name,
+                'Description': record.description,
+                'Duration': record.duration_minutes
+            }
+            return data_and_status_response(data, status.HTTP_200_OK)
+        return msg_and_status_response("Treatment not found.", status.HTTP_404_NOT_FOUND)
+
+

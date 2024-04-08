@@ -55,7 +55,17 @@ class Users(models.Model):
 
     def __str__(self):
         return self.username
+
+# class AuditData(models.Model):
+#     created_at = models.DateTimeField(default= None)
+#     created_by = models.CharField(max_length= 255, null= True, blank = True, default= None)
+#     updated_at = models.DateTimeField(null= True, blank = True, default= None)
+#     updated_by = models.CharField(max_length= 255, null= True, blank = True, default= None)
     
+#     def __str__(self):
+#         return self.created_by
+
+
 
 class DoctorProfile(models.Model):
     uu = models.UUIDField(unique=True, default=uuid4())
@@ -73,12 +83,11 @@ class Patient(models.Model):
     uu = models.UUIDField(unique=True)
     name = models.CharField(max_length= 250)
     phone = models.CharField(max_length= 10)
-    email = models.CharField(max_length=250) #username
-    image = models.FileField(blank=True, null=True) #optional
-    age = models.IntegerField()
-    adhaar_num = models.CharField(max_length=12)
+    email = models.CharField(max_length=250)
     gender = models.CharField(choices=GENDERS, max_length=1)
     profile_qr = models.FileField()  
+    age = models.IntegerField()
+    address =  models.TextField(default="", null= True, blank= True)
 
     def __str__(self):
         return self.name
@@ -88,6 +97,7 @@ class Treatments(models.Model):
     uu = models.UUIDField(unique=True, default=uuid4())
     name = models.CharField(max_length= 250)
     duration_minutes = models.IntegerField()
+    description = models.TextField(default="")
     visibility_type = models.CharField(choices=USER_TYPES, max_length=1, default="1")
 
     def __str__(self):

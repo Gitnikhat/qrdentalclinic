@@ -18,6 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path("", include("qrdentalapp.urls")),
+    path("", include("qrdentalapp.urls")), #later add dentalease
     path('admin/', admin.site.urls),
 ]
