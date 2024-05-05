@@ -1,15 +1,16 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 from uuid import uuid4
 
 
 ADMIN = '1'
-RECEPTIONIST = '2'
+SYSTEM_USER = '2'
 PATIENT = '3'
 
 USER_TYPES = (
     (ADMIN, "Admin"),
-    (RECEPTIONIST, "Receptionist"),
+    (SYSTEM_USER , "System User"),
     (PATIENT, "Patient"),
 )
 
@@ -47,14 +48,14 @@ PAYMENT_MODES = (
     (ONLINE, "Online"),
 )
 
-class Users(models.Model):
-    uu = models.UUIDField(unique=True, default=uuid4())
-    username = models.CharField(max_length=250)
-    password = models.CharField(max_length=20)
+class DentaleaseUsers(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, default="")
+    phone = models.CharField(max_length=10, default=0)
     user_type = models.CharField(choices=USER_TYPES, max_length=1, default="3")
 
     def __str__(self):
-        return self.username
+        return self.name
 
 # class AuditData(models.Model):
 #     created_at = models.DateTimeField(default= None)
@@ -84,9 +85,9 @@ class Patient(models.Model):
     name = models.CharField(max_length= 250)
     phone = models.CharField(max_length= 10)
     email = models.CharField(max_length=250)
-    gender = models.CharField(choices=GENDERS, max_length=1)
+    gender = models.CharField(choices=GENDERS, max_length=1, default=None, null=True, blank=True)
     profile_qr = models.FileField()  
-    age = models.IntegerField()
+    age = models.IntegerField(default=None, null=True, blank=True)
     address =  models.TextField(default="", null= True, blank= True)
 
     def __str__(self):
@@ -97,18 +98,18 @@ class Treatments(models.Model):
     uu = models.UUIDField(unique=True, default=uuid4())
     name = models.CharField(max_length= 250)
     duration_minutes = models.IntegerField()
-    description = models.TextField(default="")
+    description = models.TextField(default="A dental procedure is that needs immediate attention from our expert dentist dental practitioner.")
     visibility_type = models.CharField(choices=USER_TYPES, max_length=1, default="1")
 
     def __str__(self):
         return self.name
 
+
 class Timeslots(models.Model):
-    uu = models.UUIDField(unique=True, default=uuid4())
     date = models.DateField()
-    from_time = models.TimeField()
-    to_time = models.TimeField()
-    status = models.CharField(max_length=20, default=AVAILABLE)
+    max_slots = models.IntegerField(default=10)
+    booked_slots = models.IntegerField(default=0)
+    available_status = models.BooleanField(default=True)
 
 
 class Appointments(models.Model):

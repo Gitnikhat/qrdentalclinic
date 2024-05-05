@@ -1,0 +1,111 @@
+.calendar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .calendar-header button {
+    margin: 0 10px;
+    padding: 5px 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #ccc;
+    cursor: pointer;
+  }
+  
+  .calendar-header span {
+    margin: 0 10px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 40px);
+    grid-gap: 5px;
+  }
+
+  .calendar button {
+    color: gray;
+    font-weight: 500;
+  }
+
+  .calendar button:disabled {
+    background: lightgray;
+  }
+  
+  .calendar-date {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    outline: none;
+  }
+  
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-content {
+    width: 300px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 5px;
+  }
+  
+  .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+.calendar-date.holiday {
+    background-color: green;
+    color: #fff;
+  }
+  
+.weekdays {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    width: 300px;
+  }
+  
+  .weekdays span {
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .holiday-btn{
+    font-size: 11px;
+    padding: 10px;
+  }
+
+  .center-div-alg{
+    text-align: center;
+  }
+  
+  
+  

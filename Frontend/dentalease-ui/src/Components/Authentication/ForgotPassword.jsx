@@ -7,7 +7,7 @@ const ForgotPassword = () => {
 
     return (
         <div id="authentication-page">
-            <div className="auth-wrapper">
+            <div className="auth-wrapper auth-box">
                 <form action="" method="post">
                     <h1>Forgot Password</h1>
                     <br />
@@ -18,7 +18,7 @@ const ForgotPassword = () => {
                         <MdMail className="icon"/>
                     </div>
 
-                    <button type="submit">Send Reset Link</button>  
+                    <button className="btn btn-custom btn-lg" type="submit">Send Reset Link</button>  
 
                     <div className="go-back">
                         <a href="/login"> Go Back to Login Page</a>

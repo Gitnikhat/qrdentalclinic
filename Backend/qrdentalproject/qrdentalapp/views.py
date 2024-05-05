@@ -1,50 +1,66 @@
+from datetime import datetime, timedelta
+import calendar
+
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
 
 import os
 import uuid
 
 from .appconstants.responseconstants import *
-from .models import Patient, Users, Treatments
+from .models import DoctorProfile, Patient, Timeslots, Treatments, DentaleaseUsers
 
 import pyqrcode
 
+USER_TYPES_MAP = {
+   '1': "Admin",
+   '2': "System User",
+   '3': "Patient"
+}
 
 def index(request):
     return HttpResponse("Hello, welcome to QR Dental Clinic!!!")
 
 # @APIView
-def Login(request):
-    if request.method == "POST":
+class LoginView(APIView):
+
+    def post(self, request):
         username = request.data.get('username', None)
         password = request.data.get('password', None)
-        user = authenticate(request, username, password)
-        if user:
-            _ = login(request, user)
-            return msg_and_status_response("Logged in successfully", status.HTTP_200_OK)
+        user = authenticate(request, username= username, password= password)
+        print("User:: ", user)
+        if user is not None:
+            login(request, user)
+            record = DentaleaseUsers.objects.get(user= user)
+            data = {
+                "user_type": record.user_type
+            }
+            return data_and_status_response(data, status.HTTP_200_OK)
         else:
             return msg_and_status_response("Invalid credentials", status.HTTP_401_UNAUTHORIZED)
 
+@api_view(['GET'])
+def logout_user(request):
+    logout(request)
+    return msg_and_status_response("User logged out successfully", status.HTTP_200_OK)
 
 class RegisterPatient(APIView):
 
     def post(self, request):
+        print("Register".center(100, "*"))
         print(request.data)
         data = {
             'uu': uuid.uuid4(),
             'name': request.data.get('name', None),
             'phone': request.data.get('phone', None),
             'email': request.data.get('email', None),
-            # 'image': request.FILES.get("file", None),
-            'age': request.data.get('age', None),
-            # 'adhaar_num': request.data.get('adhaar_num', None),
-            'gender': request.data.get('gender', None),
-            'address': request.data.get('address', ""),
         }
         password = request.data.get('password', None)
         obj = Patient.objects.create(**data)
@@ -77,11 +93,14 @@ class RegisterPatient(APIView):
 
     def create_user(self, uu, password):
         new_profile = Patient.objects.get(uu=uu)
-        user = {
-            "username": new_profile.email,
-            "password": password
+        print("new profile,", new_profile)
+        user = User.objects.create_user(new_profile.email, new_profile.email, password)
+        user_data = {
+            "user": user
         }
-        Users.objects.create(**user)
+        DentaleaseUsers.objects.create(**user_data)
+        return True
+
 
 @api_view(['GET'])
 def view_profile(request):
@@ -110,10 +129,11 @@ class TreatmentsView(APIView):
     def post(self, request):
         print(request.data)
         data = {
+            'uu': uuid.uuid4(),
             'name': request.data.get('name', None),
             'duration_minutes': request.data.get('duration', 0),
             'description': request.data.get('description', "Default dental treatment description."),
-            'visibility_type': request.data.get('visibility', "1")
+            'visibility_type': request.data.get('visibility', "1"),
         }
         obj = Treatments.objects.create(**data)
         print(obj.uu)
@@ -121,18 +141,203 @@ class TreatmentsView(APIView):
 
     def get(self, request):
         uuid = request.GET.get('id')
+
+        if uuid:
+            record = None
+            try:
+                record = Treatments.objects.get(uu= uuid)
+            except Exception as ex:
+                print(f"An error occured while trying to fetch treatments: {ex}")
+            if record:
+                data = {
+                    'title': record.name,
+                    'text': record.description,
+                    'duration': record.duration_minutes,
+                    'visibility': record.visibility_type,
+                    'id': record.uu
+                }
+                return data_and_status_response(data, status.HTTP_200_OK)
+            return msg_and_status_response("Treatment not found.", status.HTTP_404_NOT_FOUND)
+        else:
+            records = Treatments.objects.all()
+            data = []
+            for record in records:
+                data.append({
+                    'title': record.name,
+                    'text': record.description,
+                    'duration': record.duration_minutes,
+                    'visibility': record.visibility_type,
+                    'id': record.uu,
+                    'delete_url': "http://localhost:8000/treatment/delete?id=" + str(record.uu)
+                })
+            return data_and_status_response(data, status.HTTP_200_OK)
+
+
+class DoctorProfileView(APIView):
+
+    def post(self, request):
+        print(request.data)
+        data = {
+            'name': request.data.get('name', None),
+            'age': request.data.get('age', 0),
+            'qualification': request.data.get('qualification', 'BDS'),
+            'experience': request.data.get('experience', 0),
+            'image': request.FILES.get("image", None),
+        }
+        DoctorProfile.objects.all().delete()
+        obj = DoctorProfile.objects.create(**data)
+        print(obj.uu)
+        return  msg_and_status_response("Doctor Profile Created", status.HTTP_201_CREATED)
+    
+    def get(self, request):
+        uuid = request.GET.get('id')
         record = None
         try:
-            record = Treatments.objects.get(uu= uuid)
+            record = DoctorProfile.objects.get(uu= uuid)
         except Exception as ex:
             print(f"An error occured while trying to fetch treatments: {ex}")
         if record:
             data = {
                 'Name': record.name,
-                'Description': record.description,
-                'Duration': record.duration_minutes
+                'Docimage': record.image.url if record.image else "",
+                'age': record.age,
+                'qualification': record.qualification,
+                'experience': record.experience
             }
             return data_and_status_response(data, status.HTTP_200_OK)
-        return msg_and_status_response("Treatment not found.", status.HTTP_404_NOT_FOUND)
+        return msg_and_status_response("Doctor-Profile not found.", status.HTTP_404_NOT_FOUND)
 
 
+class SystemUsers(APIView):
+
+    def post(self, request):
+        print("System Users View".center(100, "*"))
+        print(request.data)
+        data = {
+            'uu': uuid.uuid4(),
+            'name': request.data.get('name', None),
+            'phone': request.data.get('phone', None),
+            'email': request.data.get('email', None),
+            'user_type': request.data.get('usertype', None)
+        }
+        password = "1234"
+        user = User.objects.create_user(data.get('email'), data.get('email'), password)
+        user_data = {
+            "user": user,
+            "name": data.get('name'),
+            "phone": data.get('phone'),
+            "user_type": data.get('user_type')
+        }
+        DentaleaseUsers.objects.create(**user_data)
+        return  msg_and_status_response("user created", status.HTTP_201_CREATED)
+
+    def get(self, request):
+        records = DentaleaseUsers.objects.all()
+        # .exclude(user_type="3")
+        print("All System Users: ", records)
+        data = []
+        for record in records:
+            print( str(record.user.is_active), " record.user.is_active")
+            data.append({
+                'username': record.user.username,
+                'name': record.name,
+                'phone': record.phone,
+                'email': record.user.email,
+                'usertype':  USER_TYPES_MAP.get(record.user_type, 0),
+                'active': str(record.user.is_active),
+                'delete_url': "http://localhost:8000/admin/systemusers/delete?id=" + str(record.id)
+            })
+        return data_and_status_response(data, status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+def delete_system_user(request):
+    id =  request.GET.get("id")
+    try:
+        record = DentaleaseUsers.objects.get(id=id)
+        user = record.user
+        user_record = User.objects.get(id= user.id)
+        user_record.is_active = False
+        user_record.save()
+        record.delete()
+    except ObjectDoesNotExist:
+        return msg_and_status_response("No such user", status.HTTP_204_NO_CONTENT)
+    
+    return msg_and_status_response("User deleted successfully", status.HTTP_200_OK)
+
+
+@api_view(['DELETE', 'GET',])
+def delete_treatment(request):
+    id = request.GET.get('id')
+    try:
+        record = Treatments.objects.get(uu=id)
+        record.delete()
+        return msg_and_status_response("Treatment deleted successfully", status.HTTP_200_OK)
+    except ObjectDoesNotExist as ode:
+        print(ode)
+        return msg_and_status_response("Treatment object does not exist", status.HTTP_204_NO_CONTENT)
+
+
+def send_email(subject, msg, to_email = ["dentaleaseclinic@gmail.com"]): 
+    try:
+        subject = subject
+        message = f'{msg} - Dentalease Clinic.'
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = to_email
+        send_mail( subject, message, email_from, recipient_list)
+        return True
+    except Exception as ex:
+        print(f"An exception has occured while sending the mail exception: {ex}")
+        return False
+    
+
+@api_view(['POST'])
+def send_contactus_mail(request):
+    if request.method == "POST":
+        name = request.data.get("name")
+        email = request.data.get("email")
+        message = request.data.get("message")
+        
+        mail_sent = send_email(
+            f"New Contact Form Submission from {name}",
+            f"Email: {email}\nMessage: {message}",
+        )
+        if mail_sent:
+            return msg_and_status_response("Mail sent!", status.HTTP_200_OK)
+        return msg_and_status_response("Mail not sent!", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class TimeslotsView(APIView):
+
+    def post(self, request):
+        selected_date= request.data.get('selected_date', None)
+        holiday= request.data.get('holiday', False)
+        print(request.data)
+        try:
+            obj =  Timeslots.objects.get(date = selected_date)
+            print("obj: ", obj)
+            obj.available_status = not holiday
+            obj.save()
+        except ObjectDoesNotExist as ode:
+            print("Time slot object does not exist: ", ode)
+            return msg_and_status_response("Timeslot object does not exist!", status.HTTP_204_NO_CONTENT)
+        return  msg_and_status_response("Slot holiday status updated", status.HTTP_200_OK)
+
+
+    def get(self, request):
+
+        year = int(request.GET.get('year', datetime.now().year))
+        month = int(request.GET.get('month', datetime.now().month))
+        
+        start_date = datetime(year, month, 1)
+        end_date = start_date.replace(day=1, month=start_date.month+1) - timedelta(days=1)
+
+        month_dates = []
+        time_slots = Timeslots.objects.filter(date__gte=start_date, date__lte=end_date)
+        for each in time_slots:
+
+            month_dates.append({
+                'date': each.date.strftime('%Y-%m-%d'),
+                'holiday': not each.available_status,
+                'day': calendar.day_name[each.date.weekday()]
+            })
+        return data_and_status_response(month_dates, status.HTTP_200_OK)
