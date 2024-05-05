@@ -15,7 +15,7 @@ import os
 import uuid
 
 from .appconstants.responseconstants import *
-from .models import DoctorProfile, Patient, Timeslots, Treatments, DentaleaseUsers
+from .models import *
 
 import pyqrcode
 
@@ -311,10 +311,8 @@ class TimeslotsView(APIView):
     def post(self, request):
         selected_date= request.data.get('selected_date', None)
         holiday= request.data.get('holiday', False)
-        print(request.data)
         try:
             obj =  Timeslots.objects.get(date = selected_date)
-            print("obj: ", obj)
             obj.available_status = not holiday
             obj.save()
         except ObjectDoesNotExist as ode:
@@ -334,10 +332,118 @@ class TimeslotsView(APIView):
         month_dates = []
         time_slots = Timeslots.objects.filter(date__gte=start_date, date__lte=end_date)
         for each in time_slots:
+            available = not each.available_status
+            if each.booked_slots == each.max_slots:
+                available = False
 
             month_dates.append({
                 'date': each.date.strftime('%Y-%m-%d'),
-                'holiday': not each.available_status,
+                'holiday': available,
                 'day': calendar.day_name[each.date.weekday()]
             })
         return data_and_status_response(month_dates, status.HTTP_200_OK)
+    
+
+class BookAppointmentView(APIView):
+
+    PENDING_FOR_APPROVAL = "Pending for approval"
+    CONFIRMED = "Confirmed"
+    REQUEST_FOR_CHANGE = "Request for change"
+    CANCELLED = "Cancelled"
+
+    def post(self, request):
+        print(f"Request data book appointment: {request.data}")
+        data = {
+            "treatment": request.data.get("treatment_id", None),
+            "patient": request.data.get("patient_id", None),
+            "patient_remark": request.data.get("patient_remark", ""),
+            "doctor_remark": request.data.get("doctor_remark", ""),
+            "status": self.PENDING_FOR_APPROVAL
+        }
+
+        
+        user_type = request.data.get("user_type", "")
+        if user_type == "Admin":
+            data['status'] = self.CONFIRMED
+
+        time_slot_date = request.data.get("time_slot_date", None)
+        if time_slot_date:
+            time_slot_record = Timeslots.objects.get(date = time_slot_date)
+            booked_slots_count = time_slot_record.booked_slots
+            if booked_slots_count < time_slot_record.max_slots:
+                booked_slots_count += 1
+                time_slot_record.booked_slots = booked_slots_count
+            if booked_slots_count == time_slot_record.max_slots:
+                time_slot_record.available_status = False
+            time_slot_record.save()
+            data['time_slot_id'] = time_slot_record.id
+
+        obj = Appointments.objects.create(**data)
+        print(obj.uu)
+
+        self.generate_appointment_qr(obj.uu)
+
+        treatment = Treatments.objects.get(data['treatment'])
+        patient = Patient.objects.get(data['patient'])
+
+        mail_sent = send_email(
+            f"Appointment booked for {treatment.name} on {time_slot_date}",
+            f"Hi {data['patient']}, \n Your appointment request is recieved. \n Treatment: {treatment.name} \n Date: {time_slot_date} \n Appointment Status: {obj.status} \n\n Please Note: A consultation fee of Rs. 150/- will be charged irrespective of the treatment.",
+            to_email=['dentaleaseclinic@gmail.com', patient.email]
+        )
+        if mail_sent:
+            return msg_and_status_response("Appointment booked and email sent!", status.HTTP_201_CREATED)
+        return msg_and_status_response("Appointment could not be booked!", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def generate_appointment_qr(self, uu):
+        appointment_record = Appointments.objects.get(uu=uu)
+        s = "/appointment?id=" + str(uu)
+        url = pyqrcode.create(s)
+
+        media_root = settings.MEDIA_ROOT
+        qr_codes_folder = os.path.join(media_root, 'qr_codes')
+
+        if not os.path.exists(qr_codes_folder):
+            os.makedirs(qr_codes_folder)
+
+        file_name = f"{appointment_record.uu}.png"
+        file_path = os.path.join(qr_codes_folder, file_name)
+
+        try:
+            url.png(file_path, scale=6)
+            appointment_record.appointment_qr = os.path.relpath(file_path, media_root) 
+            appointment_record.save()
+            print("QR Code saved successfully:", file_path)
+        except Exception as e:
+            print("Error saving QR Code:", e)
+
+    def get(selg, request):
+        id = request.GET.get("id", None)
+        start_date = request.GET.get("from", None)
+        end_date = request.GET.get("to", None)
+        selected_date = request.GET.get("selectdate", None)
+
+        if id:
+            records = Appointments.objects.filter(uu = id)
+        elif selected_date:
+            records = Appointments.objects.filter(time_slot_date = selected_date)
+        elif start_date and end_date:
+            records = Appointments.objects.filter(time_slot_date__gte= start_date, time_slot_date__lte= end_date)
+        else:
+            records = Appointments.objects.all()
+
+        for each in records:
+            data = {
+                'id': each.id,
+                'uuid': each.uu,
+                'treatment': each.treatment.name,
+                'slot': each.time_slot.date,
+                'patient_name': each.patient.name,
+                'patient_contact': each.patient.email,
+                'patient_remark': each.patient_remark,
+                'doctor_remark': each.doctor_remark,
+                'qr': each.appointment_qr,  
+                'status': each.status
+            }
+        return data_and_status_response(data, status.HTTP_200_OK)
+        

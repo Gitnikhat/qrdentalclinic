@@ -86,7 +86,7 @@ const Timeslotcalendar = (props) => {
                 <nav>
                     <ol className="breadcrumb">
                     <li className="breadcrumb-item"><a href="/dashboard">Home</a></li>
-                    <li className="breadcrumb-item active">Dashboard</li>
+                    <li className="breadcrumb-item active">Manage Time Slots</li>
                     </ol>
                 </nav>
                 </div>

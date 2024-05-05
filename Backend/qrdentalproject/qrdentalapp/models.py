@@ -27,10 +27,10 @@ BOOKED = "Booked"
 TENTATIVE = "Tentative"
 
 
-PENDING_FOR_APPROVAL = 'P'
-CONFIRMED = 'C'
-REQUEST_FOR_CHANGE = "R"
-CANCELLED = "CL"
+PENDING_FOR_APPROVAL = "Pending for approval"
+CONFIRMED = "Confirmed"
+REQUEST_FOR_CHANGE = "Request for change"
+CANCELLED = "Cancelled"
 
 APPOINTMENT_STATUS_TYPES = (
     (PENDING_FOR_APPROVAL, "Pending for approval"),
@@ -113,14 +113,14 @@ class Timeslots(models.Model):
 
 
 class Appointments(models.Model):
-    uu = models.UUIDField(unique=True, default=uuid4())
+    uu = models.UUIDField(unique=True, default=None)
     treatment = models.ForeignKey(Treatments, on_delete= models.CASCADE)
     time_slot = models.ForeignKey(Timeslots, on_delete= models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     patient_remark = models.TextField()
     doctor_remark = models.TextField()
     appointment_qr = models.FileField()  
-    status = models.CharField(choices=APPOINTMENT_STATUS_TYPES, default="P", max_length= 2)
+    status = models.CharField(choices=APPOINTMENT_STATUS_TYPES, default="Pending for approval", max_length= 50)
 
     def __str__(self):
         return self.patient.name + " - " + self.treatment.name

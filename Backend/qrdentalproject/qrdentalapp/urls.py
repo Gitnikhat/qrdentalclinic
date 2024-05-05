@@ -20,6 +20,8 @@ urlpatterns = [
     path("admin/systemusers", SystemUsers.as_view()),
     path("admin/systemusers/delete", views.delete_system_user),
 
+    path("appointments", BookAppointmentView.as_view()),
+
     path("send-contact-email", views.send_contactus_mail),
 
 

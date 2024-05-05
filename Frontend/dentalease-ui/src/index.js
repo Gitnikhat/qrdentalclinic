@@ -22,6 +22,7 @@ import Managesystemusers from './Components/Dashboard/Managesystemusers';
 import Addsystemusers from './Components/Dashboard/Addsystemusers';
 import Manageslots from './Components/Dashboard/Manageslots';
 import Test from './Components/Dashboard/Test';
+import Managebookings from './Components/Dashboard/Managebookings';
 
 
 const router = createBrowserRouter([
@@ -119,6 +120,19 @@ const router = createBrowserRouter([
   {
     path: "admindashboard",
     element: <Test />,
+    css: () => [
+      import('./Components/Dashboard/css-utils/bootstrap/css/bootstrap.min.css'), 
+      import('./Components/Dashboard/css-utils/bootstrap-icons/bootstrap-icons.css'), 
+      import('./Components/Dashboard/css-utils/boxicons/css/boxicons.min.css'), 
+      import('./Components/Dashboard/css-utils/quill/quill.snow.css'), 
+      import('./Components/Dashboard/css-utils/quill/quill.bubble.css'), 
+      import('./Components/Dashboard/css-utils/remixicon/remixicon.css'), 
+      import('./Components/Dashboard/css-utils/simple-datatables/style.css'), 
+    ]
+  },
+  {
+    path: "appointments",
+    element: <Managebookings />,
     css: () => [
       import('./Components/Dashboard/css-utils/bootstrap/css/bootstrap.min.css'), 
       import('./Components/Dashboard/css-utils/bootstrap-icons/bootstrap-icons.css'), 
