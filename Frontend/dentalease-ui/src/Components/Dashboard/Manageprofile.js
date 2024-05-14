@@ -3,8 +3,9 @@ import axios from "axios";
 
 import Navheader from "./Navheader";
 import Sidebar from "./Sidebar";
+import Addusers from "./Addusers";
 import Footer from "./Footer";
-import Appointments from "./Appointments";
+import Profile from "./Profile";
 
 // import "./css-utils/bootstrap/css/bootstrap.min.css";
 // import "./css-utils/bootstrap-icons/bootstrap-icons.css";
@@ -14,20 +15,20 @@ import Appointments from "./Appointments";
 // import "./css-utils/remixicon/remixicon.css";
 // import "./css-utils/simple-datatables/style.css";
 
-const Managebookings = () => {
+const Manageprofile = () => {
 
-  const user="Admin";
-  const body="Manage Appointment";
-  const [appointmentsData, setappointmentsData] = useState({});
+  const user="Patient";
+  const body="Profile";
+  const [sysusersData, setsysusersData] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/appointment");
-        console.log("appointments: ", response.data)
-        setappointmentsData(response.data);
+        const response = await axios.get("http://localhost:8000/profile?id=5dad6a44-fa1a-4d42-b586-e157f8b7ad50");
+        console.log("profile: ", response.data)
+        setsysusersData(response.data);
       } catch (error) {
-        console.error("Error fetching all appointments data:", error);
+        console.error("Error fetching patient data:", error);
       }
     };
     fetchData();
@@ -38,10 +39,10 @@ const Managebookings = () => {
     <div>
       <Navheader />
       <Sidebar user={user}/>
-      <Appointments type={body} data={appointmentsData.data} />
+      <Profile type={body} data={sysusersData.data} />
       <Footer />
     </div>
   );
 };
 
-export default Managebookings ;
+export default Manageprofile ;

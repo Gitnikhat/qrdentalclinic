@@ -14,7 +14,7 @@ import Appointments from "./Appointments";
 // import "./css-utils/remixicon/remixicon.css";
 // import "./css-utils/simple-datatables/style.css";
 
-const Managebookings = () => {
+const Makebookings = () => {
 
   const user="Admin";
   const body="Manage Appointment";
@@ -44,4 +44,4 @@ const Managebookings = () => {
   );
 };
 
-export default Managebookings ;
+export default Makebookings ;

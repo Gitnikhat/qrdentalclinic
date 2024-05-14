@@ -207,6 +207,8 @@
     border: none;
     border-radius: 5px;
     box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
+    padding: 15px;
+    text-align: center;
   }
   
   .card-header,
@@ -237,6 +239,23 @@
   
   .card-img-overlay {
     background-color: rgba(255, 255, 255, 0.6);
+  }
+  .nighty-six{
+    width: 95% !important;
+}
+
+#footer .no-margin-left{
+  margin-left: 0px !important;
+  background: #f6f6f6 !important;
+  padding: 15px;
+}
+
+  .card-body-no-padding{
+    padding: 0px !important;
+  }
+
+  .img-one-eighty{
+    width: 180px;
   }
   
   /* Alerts */
@@ -631,7 +650,8 @@
   @media (min-width: 1200px) {
   
     .toggle-sidebar #main,
-    .toggle-sidebar #footer {
+    .toggle-sidebar #footer,
+    .toggle-sidebar #landing-footer {
       margin-left: 0;
     }
   

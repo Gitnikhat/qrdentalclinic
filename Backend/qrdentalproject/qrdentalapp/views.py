@@ -25,6 +25,11 @@ USER_TYPES_MAP = {
    '3': "Patient"
 }
 
+GENDER_MAP = {
+    'M': "Male",
+    'F': "Female"
+}
+
 def index(request):
     return HttpResponse("Hello, welcome to QR Dental Clinic!!!")
 
@@ -40,7 +45,7 @@ class LoginView(APIView):
             login(request, user)
             record = DentaleaseUsers.objects.get(user= user)
             data = {
-                "user_type": record.user_type
+                "user_type": USER_TYPES_MAP.get(record.user_type)
             }
             return data_and_status_response(data, status.HTTP_200_OK)
         else:
@@ -113,15 +118,18 @@ def view_profile(request):
     except ObjectDoesNotExist as obe:
         print("An error occured while retrieving profile: {obe}")
         return msg_and_status_response("Patient profile not found.", status.HTTP_404_NOT_FOUND)
-    data = {
-        'name': record.name,
-        'phone': record.phone,
-        'email': record.email,
-        'gender': record.gender,
-        'age': record.age,
-        'profile_qr': record.profile_qr.url,
-        'address': record.address
-    }
+    if record:
+        data = {
+            'name': record.name,
+            'phone': record.phone,
+            'email': record.email,
+            'gender': GENDER_MAP.get(record.gender),
+            'age': record.age,
+            'profile_qr': record.profile_qr.url,
+            'address': record.address
+        }
+    else:
+        data = {}
     return data_and_status_response(data, status.HTTP_200_OK)
         
 class TreatmentsView(APIView):
@@ -170,6 +178,7 @@ class TreatmentsView(APIView):
                     'id': record.uu,
                     'delete_url': "http://localhost:8000/treatment/delete?id=" + str(record.uu)
                 })
+            print(f"data: {data}")
             return data_and_status_response(data, status.HTTP_200_OK)
 
 
@@ -447,3 +456,45 @@ class BookAppointmentView(APIView):
             }
         return data_and_status_response(data, status.HTTP_200_OK)
         
+
+@api_view(['GET'])
+def get_patients_data(request):
+        uuid = request.GET.get('id')
+
+        if uuid:
+            record = None
+            try:
+                record = Patient.objects.get(uu= uuid)
+            except Exception as ex:
+                print(f"An error occured while trying to fetch patient: {ex}")
+            if record:
+                data = {
+                    'name': record.name,
+                    'phone': record.phone,
+                    'email': record.email,
+                    'gender': record.gender,
+                    'id': record.uu,
+                    'profile_qr': "http://localhost:8000/",
+                    'age': record.age,
+                    'address': record.address
+                }
+                return data_and_status_response(data, status.HTTP_200_OK)
+            return msg_and_status_response("Patient not found.", status.HTTP_404_NOT_FOUND)
+        else:
+            records = Patient.objects.all()
+            data = []
+            for record in records:
+                data.append({
+                    'name': record.name,
+                    'phone': record.phone,
+                    'email': record.email,
+                    'gender': record.gender,
+                    'id': record.uu,
+                    'profile_qr': "http://localhost:8000/",
+                    'age': record.age,
+                    'address': record.address
+                })
+            return data_and_status_response(data, status.HTTP_200_OK)
+
+
+

@@ -3,7 +3,7 @@ import React from "react";
 import Navheader from "./Navheader";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
-import Usermain from "./Usermain";
+import Faqs from "./Faqs";
 
 // import "./css-utils/bootstrap/css/bootstrap.min.css";
 // import "./css-utils/bootstrap-icons/bootstrap-icons.css";
@@ -13,19 +13,18 @@ import Usermain from "./Usermain";
 // import "./css-utils/remixicon/remixicon.css";
 // import "./css-utils/simple-datatables/style.css";
 
-const Userdashboard = () => {
+const Viewfaq = () => {
 
-  const user="User";
-  const body="Treatment";
-  
+  const user="Patient";
+
   return (
     <div>
       <Navheader />
-      <Sidebar user={user}/>
-      <Usermain type={body}/>
+      <Sidebar />
+      <Faqs />
       <Footer />
     </div>
   );
 };
 
-export default Userdashboard ;
+export default Viewfaq ;

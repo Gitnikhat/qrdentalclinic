@@ -79,11 +79,11 @@ const Bookings = (props) => {
                                 <table class="table datatable">
                                     <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Email / Username</th>
-                                        <th>Phone</th>
-                                        <th>Usertype</th>
-                                        <th>Active</th>
+                                        <th>Date</th>
+                                        <th>Patient Name</th>
+                                        <th>Contact</th>
+                                        <th>Treatment</th>
+                                        <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                     </thead>
@@ -91,11 +91,11 @@ const Bookings = (props) => {
                                     {props.data
                                         ? props.data.map((d, i) => (
                                             <tr>
-                                                <td>{d.name}</td>
-                                                <td>{d.email}</td>
-                                                <td>{d.phone}</td>
-                                                <td>{d.usertype}</td>
-                                                <td>{d.active}</td>
+                                                <td>{d.slot}</td>
+                                                <td>{d.patient_name}</td>
+                                                <td>{d.patient_contact}</td>
+                                                <td>{d.treatment}</td>
+                                                <td>{d.status}</td>
                                                 <td>
                                                     <button onClick={handleDelete(d.delete_url)} className="delete-btn">
                                                         <MdDelete className="icon" />

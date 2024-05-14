@@ -21,10 +21,15 @@ const LoginForm = () => {
         e.preventDefault();
         try {
             const response = await axios.post('http://localhost:8000/login', formData);
-            console.log('Response:', response.data);
+            console.log('Login Response:', response.data.data.user_type);
             if (response.status === 200) {
                 console.log("200")
-                navigate("/dashboard");
+                console.log('Logged in user:', response.data.user_type);
+                if (response.data.data.user_type == "Patient"){
+                    navigate("/patientdashboard");
+                } else {
+                    navigate("/admindashboard");
+                }
             }
         } catch (error) {
             console.error('Error:', error);

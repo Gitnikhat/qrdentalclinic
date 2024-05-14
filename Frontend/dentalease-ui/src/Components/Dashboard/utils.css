@@ -55,7 +55,46 @@
     font-size: 16px;
 }
 
+.dash-input-box input:disabled,
+.dash-input-box select:disabled,
+.dash-input-box textarea:disabled{
+    color: gray;
+}
+
 .delete-btn {
     background: none;
     border: none;
+}
+
+.rounded-circle {
+    border-radius: 50% !important;
+}
+
+.img-cls{
+    max-width: 120px;
+}
+
+.prof-section{
+    display: flex;
+    justify-content: space-between;
+}
+
+.prof-form-div{
+    width: 650px;
+}
+
+.faq h6 {
+    font-size: 18px;
+    font-weight: 600;
+    color: darkturquoise;
+    text-align: justify;
+  }
+  
+.faq p {
+    color: #6980aa;
+    text-align: justify;
+}
+
+.nighty-five{
+    width: 96% !important;
 }

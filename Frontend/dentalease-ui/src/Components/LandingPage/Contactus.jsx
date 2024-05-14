@@ -126,7 +126,7 @@ export const Contactus = (props) => {
          
         </div>
       </div>
-      <div id="footer">
+      <div id="footer  no-margin-left">
         <div className="container text-center">
           <p>
             &copy; 2024 Dentalease. Design by{" "}

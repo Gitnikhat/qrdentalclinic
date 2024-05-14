@@ -87,23 +87,16 @@ const Sidebar = (props) => {
                     </li>
     
                     <li class="nav-item">
-                        <a class="nav-link collapsed" href="users-profile.html">
+                        <a class="nav-link collapsed" href="/manageprofile">
                         <i class="bi bi-person"></i>
                         <span>Profile</span>
                         </a>
                     </li>
     
                     <li class="nav-item">
-                        <a class="nav-link collapsed" href="pages-faq.html">
+                        <a class="nav-link collapsed" href="/faqs">
                         <i class="bi bi-question-circle"></i>
                         <span>F.A.Q</span>
-                        </a>
-                    </li>
-    
-                    <li class="nav-item">
-                        <a class="nav-link collapsed" href="pages-contact.html">
-                        <i class="bi bi-envelope"></i>
-                        <span>Contact Us</span>
                         </a>
                     </li>
     
