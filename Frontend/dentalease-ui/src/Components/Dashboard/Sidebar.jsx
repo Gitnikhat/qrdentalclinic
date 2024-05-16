@@ -19,7 +19,7 @@ const Sidebar = (props) => {
                     </li>
     
                     <li class="nav-item">
-                        <a class="nav-link collapsed" href="/appointments">
+                        <a class="nav-link collapsed" href="/manageappointments">
                         <i class="ri-contract-line"></i>
                         <span>Appointments</span>
                         </a>
@@ -73,7 +73,7 @@ const Sidebar = (props) => {
                     </li>
     
                     <li class="nav-item">
-                        <a class="nav-link collapsed" href="index.html">
+                        <a class="nav-link collapsed" href="/manageappointments">
                         <i class="bi bi-grid"></i>
                         <span>Appointments</span>
                         </a>

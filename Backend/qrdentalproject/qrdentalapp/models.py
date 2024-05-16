@@ -31,12 +31,14 @@ PENDING_FOR_APPROVAL = "Pending for approval"
 CONFIRMED = "Confirmed"
 REQUEST_FOR_CHANGE = "Request for change"
 CANCELLED = "Cancelled"
+COMPLETED = "Completed"
 
 APPOINTMENT_STATUS_TYPES = (
     (PENDING_FOR_APPROVAL, "Pending for approval"),
     (CONFIRMED, "Confirmed"),
     (REQUEST_FOR_CHANGE, "Request for change"),
-    (CANCELLED, "Cancelled")
+    (CANCELLED, "Cancelled"),
+    (COMPLETED, "Completed")
 )
 
 

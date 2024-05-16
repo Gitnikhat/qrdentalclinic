@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import pytz
 import calendar
 
 from django.http import HttpResponse
@@ -28,6 +29,11 @@ USER_TYPES_MAP = {
 GENDER_MAP = {
     'M': "Male",
     'F': "Female"
+}
+
+GENDER_REVERSE_MAP = {
+    'Male': "M",
+    'Female': "F"
 }
 
 def index(request):
@@ -131,7 +137,34 @@ def view_profile(request):
     else:
         data = {}
     return data_and_status_response(data, status.HTTP_200_OK)
-        
+
+
+
+@api_view(['POST'])
+def edit_profile(request):
+    print(request.data)
+    # import uuid
+    # uu = uuid.UUID(request.GET.get('id'))
+    # print(uu)
+
+    data = {
+            'name': request.data.get("name"),
+            'phone': request.data.get("phone"),
+            'email': request.data.get("email"),
+            'gender': GENDER_REVERSE_MAP.get(request.data.get("gender"), ""),
+            'age': request.data.get("age"),
+            'address': request.data.get("address")
+        }
+
+    try:
+        Patient.objects.filter(email=data.get("email")).update(**data)
+    except Exception as ex:
+        print(f"An error occured while updating profile: {ex}")
+        return msg_and_status_response("Patient edit profile failed.", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return msg_and_status_response("Edit profile successful", status.HTTP_200_OK)
+
+
 class TreatmentsView(APIView):
 
     def post(self, request):
@@ -162,7 +195,8 @@ class TreatmentsView(APIView):
                     'text': record.description,
                     'duration': record.duration_minutes,
                     'visibility': record.visibility_type,
-                    'id': record.uu
+                    'id': record.id,
+                    'uu': record.uu
                 }
                 return data_and_status_response(data, status.HTTP_200_OK)
             return msg_and_status_response("Treatment not found.", status.HTTP_404_NOT_FOUND)
@@ -175,7 +209,8 @@ class TreatmentsView(APIView):
                     'text': record.description,
                     'duration': record.duration_minutes,
                     'visibility': record.visibility_type,
-                    'id': record.uu,
+                    'id': record.id,
+                    'uu': record.uu,
                     'delete_url': "http://localhost:8000/treatment/delete?id=" + str(record.uu)
                 })
             print(f"data: {data}")
@@ -348,6 +383,7 @@ class TimeslotsView(APIView):
             month_dates.append({
                 'date': each.date.strftime('%Y-%m-%d'),
                 'holiday': available,
+                'show_date': not available,
                 'day': calendar.day_name[each.date.weekday()]
             })
         return data_and_status_response(month_dates, status.HTTP_200_OK)
@@ -359,12 +395,14 @@ class BookAppointmentView(APIView):
     CONFIRMED = "Confirmed"
     REQUEST_FOR_CHANGE = "Request for change"
     CANCELLED = "Cancelled"
+    COMPLETED = "Completed"
 
     def post(self, request):
         print(f"Request data book appointment: {request.data}")
         data = {
-            "treatment": request.data.get("treatment_id", None),
-            "patient": request.data.get("patient_id", None),
+            "uu": uuid.uuid4(),
+            "treatment_id": request.data.get("treatment", None),
+            "patient_id": request.data.get("patient", None),
             "patient_remark": request.data.get("patient_remark", ""),
             "doctor_remark": request.data.get("doctor_remark", ""),
             "status": self.PENDING_FOR_APPROVAL
@@ -375,16 +413,23 @@ class BookAppointmentView(APIView):
         if user_type == "Admin":
             data['status'] = self.CONFIRMED
 
-        time_slot_date = request.data.get("time_slot_date", None)
+        time_slot_date = request.data.get("timeslot", None)
+        # Convert string to datetime object
+        date_object = datetime.strptime(time_slot_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+        # Convert to UTC timezone
+        utc_timezone = pytz.timezone('UTC')
+        utc_date = utc_timezone.localize(date_object)
+
+        # Convert to IST timezone
+        ist_timezone = pytz.timezone('Asia/Kolkata')
+        ist_date = utc_date.astimezone(ist_timezone)
+
+        # Format the datetime object
+        formatted_date = ist_date.strftime("%Y-%m-%d")
+        print("formated date", formatted_date)
         if time_slot_date:
-            time_slot_record = Timeslots.objects.get(date = time_slot_date)
-            booked_slots_count = time_slot_record.booked_slots
-            if booked_slots_count < time_slot_record.max_slots:
-                booked_slots_count += 1
-                time_slot_record.booked_slots = booked_slots_count
-            if booked_slots_count == time_slot_record.max_slots:
-                time_slot_record.available_status = False
-            time_slot_record.save()
+            time_slot_record = Timeslots.objects.get(date = formatted_date)
             data['time_slot_id'] = time_slot_record.id
 
         obj = Appointments.objects.create(**data)
@@ -392,12 +437,21 @@ class BookAppointmentView(APIView):
 
         self.generate_appointment_qr(obj.uu)
 
-        treatment = Treatments.objects.get(data['treatment'])
-        patient = Patient.objects.get(data['patient'])
+        booked_slots_count = time_slot_record.booked_slots
+        print(f"booked slots count {booked_slots_count}")
+        if booked_slots_count < time_slot_record.max_slots:
+            booked_slots_count += 1
+            time_slot_record.booked_slots = booked_slots_count
+        if booked_slots_count == time_slot_record.max_slots:
+            time_slot_record.available_status = False
+        time_slot_record.save()
+
+        treatment = Treatments.objects.get(id = data['treatment_id'])
+        patient = Patient.objects.get(id=data['patient_id'])
 
         mail_sent = send_email(
-            f"Appointment booked for {treatment.name} on {time_slot_date}",
-            f"Hi {data['patient']}, \n Your appointment request is recieved. \n Treatment: {treatment.name} \n Date: {time_slot_date} \n Appointment Status: {obj.status} \n\n Please Note: A consultation fee of Rs. 150/- will be charged irrespective of the treatment.",
+            f"Appointment booked for {treatment.name} on {formatted_date}",
+            f"Hi {patient.name}, \n Your appointment request is recieved. \n Treatment: {treatment.name} \n Date: {formatted_date} \n Appointment Status: {obj.status} \n You can use the below QR Code, {obj.appointment_qr.url} \n\n Please Note: A consultation fee of Rs. 150/- will be charged irrespective of the treatment.",
             to_email=['dentaleaseclinic@gmail.com', patient.email]
         )
         if mail_sent:
@@ -433,7 +487,7 @@ class BookAppointmentView(APIView):
         selected_date = request.GET.get("selectdate", None)
 
         if id:
-            records = Appointments.objects.filter(uu = id)
+            records = Appointments.objects.filter(id = id)
         elif selected_date:
             records = Appointments.objects.filter(time_slot_date = selected_date)
         elif start_date and end_date:
@@ -441,60 +495,99 @@ class BookAppointmentView(APIView):
         else:
             records = Appointments.objects.all()
 
-        for each in records:
-            data = {
-                'id': each.id,
-                'uuid': each.uu,
-                'treatment': each.treatment.name,
-                'slot': each.time_slot.date,
-                'patient_name': each.patient.name,
-                'patient_contact': each.patient.email,
-                'patient_remark': each.patient_remark,
-                'doctor_remark': each.doctor_remark,
-                'qr': each.appointment_qr,  
-                'status': each.status
-            }
+        data = []
+        if records:
+            for each in records:
+                data.append({
+                    'id': each.id,
+                    'uuid': each.uu,
+                    'treatment': each.treatment.name,
+                    'slot': each.time_slot.date,
+                    'patient_name': each.patient.name,
+                    'patient_contact': each.patient.email,
+                    'patient_remark': each.patient_remark,
+                    'doctor_remark': each.doctor_remark,
+                    'qr': each.appointment_qr.url,  
+                    'status': each.status,
+                    'cancel_url': "http://localhost:8000/cancel/appointment?id=" + str(each.uu)
+                })
         return data_and_status_response(data, status.HTTP_200_OK)
         
 
+@api_view(['POST'])
+def cancel_booking(request):
+    print(f"Request data book appointment: {request.data}")
+    id = request.GET.get("id")
+    ba = BookAppointmentView()
+    try:
+        obj = Appointments.objects.get(uu=id)
+        print(obj.uu)
+    except ObjectDoesNotExist:
+        return msg_and_status_response("No appointment exist!", status.HTTP_204_NO_CONTENT)
+    time_slot_record = Timeslots.objects.get(id= obj.time_slot_id)
+
+    booked_slots_count = time_slot_record.booked_slots
+    print(f"booked slots count {booked_slots_count}")
+    booked_slots_count -= 1
+    print(f"new book slots: {booked_slots_count}")
+    time_slot_record.booked_slots = booked_slots_count
+    if booked_slots_count < time_slot_record.max_slots:
+        time_slot_record.available_status = True
+    time_slot_record.save()
+
+
+    mail_sent = send_email(
+        f"Appointment cancelled for {obj.treatment.name} on {obj.time_slot.date}",
+        f"Hi {obj.patient.name}, \n Your appointment has been cancelled. \n Treatment: {obj.treatment.name} \n Date: {obj.time_slot.date} \n Appointment Status: {obj.status} \n\n Sorry for any inconvenience caused. Feel free to book appointment for another date.",
+        to_email=['dentaleaseclinic@gmail.com', obj.patient.email]
+    )
+    if mail_sent:
+        obj.status = ba.CANCELLED
+        obj.save()
+        return msg_and_status_response("Appointment cancelled and email sent!", status.HTTP_201_CREATED)
+    return msg_and_status_response("Appointment could not be cancelled!", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @api_view(['GET'])
 def get_patients_data(request):
-        uuid = request.GET.get('id')
+    uuid = request.GET.get('id')
 
-        if uuid:
-            record = None
-            try:
-                record = Patient.objects.get(uu= uuid)
-            except Exception as ex:
-                print(f"An error occured while trying to fetch patient: {ex}")
-            if record:
-                data = {
-                    'name': record.name,
-                    'phone': record.phone,
-                    'email': record.email,
-                    'gender': record.gender,
-                    'id': record.uu,
-                    'profile_qr': "http://localhost:8000/",
-                    'age': record.age,
-                    'address': record.address
-                }
-                return data_and_status_response(data, status.HTTP_200_OK)
-            return msg_and_status_response("Patient not found.", status.HTTP_404_NOT_FOUND)
-        else:
-            records = Patient.objects.all()
-            data = []
-            for record in records:
-                data.append({
-                    'name': record.name,
-                    'phone': record.phone,
-                    'email': record.email,
-                    'gender': record.gender,
-                    'id': record.uu,
-                    'profile_qr': "http://localhost:8000/",
-                    'age': record.age,
-                    'address': record.address
-                })
+    if uuid:
+        record = None
+        try:
+            record = Patient.objects.get(uu= uuid)
+        except Exception as ex:
+            print(f"An error occured while trying to fetch patient: {ex}")
+        if record:
+            data = {
+                'name': record.name,
+                'phone': record.phone,
+                'email': record.email,
+                'gender': GENDER_MAP.get(record.gender),
+                'id': record.id,
+                'uu': record.uu,
+                'profile_qr': "http://localhost:8000/",
+                'age': record.age,
+                'address': record.address
+            }
             return data_and_status_response(data, status.HTTP_200_OK)
+        return msg_and_status_response("Patient not found.", status.HTTP_404_NOT_FOUND)
+    else:
+        records = Patient.objects.all()
+        data = []
+        for record in records:
+            data.append({
+                'name': record.name,
+                'phone': record.phone,
+                'email': record.email,
+                'gender': GENDER_MAP.get(record.gender),
+                'id': record.id,
+                'uu': record.uu,
+                'profile_qr': "http://localhost:8000/",
+                'age': record.age,
+                'address': record.address
+            })
+        return data_and_status_response(data, status.HTTP_200_OK)
 
 
 

@@ -4,7 +4,7 @@ import axios from "axios";
 import Navheader from "./Navheader";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
-import Appointments from "./Appointments";
+import Appointment from "./Appointment";
 
 // import "./css-utils/bootstrap/css/bootstrap.min.css";
 // import "./css-utils/bootstrap-icons/bootstrap-icons.css";
@@ -14,20 +14,20 @@ import Appointments from "./Appointments";
 // import "./css-utils/remixicon/remixicon.css";
 // import "./css-utils/simple-datatables/style.css";
 
-const Managebookings = () => {
+const Manageappointments = () => {
 
   const user="Admin";
-  const body="Manage Appointment";
+  const body="Manage Appointments";
   const [appointmentsData, setappointmentsData] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/appointment");
+        const response = await axios.get("http://localhost:8000/appointments");
         console.log("appointments: ", response.data)
         setappointmentsData(response.data);
       } catch (error) {
-        console.error("Error fetching all appointments data:", error);
+        console.error("Error fetching all system users data:", error);
       }
     };
     fetchData();
@@ -38,10 +38,10 @@ const Managebookings = () => {
     <div>
       <Navheader />
       <Sidebar user={user}/>
-      <Appointments type={body} data={appointmentsData.data} />
+      <Appointment type={body} data={appointmentsData.data} />
       <Footer />
     </div>
   );
 };
 
-export default Managebookings ;
+export default Manageappointments ;

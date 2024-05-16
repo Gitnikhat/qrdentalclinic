@@ -7,3 +7,4 @@ pyqrcode==1.2.1
 pypng
 django-cors-headers==4.3.1
 mysqlclient
+pytz

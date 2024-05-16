@@ -98,3 +98,26 @@
 .nighty-five{
     width: 96% !important;
 }
+
+.cal-custom{
+    border: 1px solid rgba(0, 0, 0, .2);
+    padding: 14px 45px 14px 20px;
+    border-radius: 40px;
+    text-align: left;
+    display: block;
+}
+
+.cal-custom input{
+    border: none !important;
+    outline: none !important;
+}
+
+.cancel-btn {
+    background: indianred;
+    color: white;
+    padding: 5px;
+    border-radius: 10px;
+    width: 80px;
+    border: none;
+    outline: none;
+}

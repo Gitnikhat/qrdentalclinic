@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React from "react";
+
 
 import Navheader from "./Navheader";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
-import Appointments from "./Appointments";
+import Appointment from "./Appointment";
 
 // import "./css-utils/bootstrap/css/bootstrap.min.css";
 // import "./css-utils/bootstrap-icons/bootstrap-icons.css";
@@ -17,28 +17,13 @@ import Appointments from "./Appointments";
 const Bookappointment = () => {
 
   const user="Admin";
-  const body="Manage Appointment";
-  const [appointmentsData, setappointmentsData] = useState({});
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://localhost:8000/appointment");
-        console.log("appointments: ", response.data)
-        setappointmentsData(response.data);
-      } catch (error) {
-        console.error("Error fetching all appointments data:", error);
-      }
-    };
-    fetchData();
-  }, []);
-
+  const body="Bookappointment";
 
   return (
     <div>
       <Navheader />
       <Sidebar user={user}/>
-      <Appointments type={body} data={appointmentsData.data} />
+      <Appointment type={body} />
       <Footer />
     </div>
   );
