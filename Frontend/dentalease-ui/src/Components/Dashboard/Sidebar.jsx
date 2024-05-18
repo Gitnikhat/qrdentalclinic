@@ -66,23 +66,16 @@ const Sidebar = (props) => {
                     <ul class="sidebar-nav" id="sidebar-nav">
     
                     <li class="nav-item">
-                        <a class="nav-link " href="dashboard">
+                        <a class="nav-link " href="/patientdashboard">
                         <i class="bi bi-grid"></i>
                         <span>Dashboard</span>
                         </a>
                     </li>
     
                     <li class="nav-item">
-                        <a class="nav-link collapsed" href="/manageappointments">
+                        <a class="nav-link collapsed" href="/appointmentshistory">
                         <i class="bi bi-grid"></i>
-                        <span>Appointments</span>
-                        </a>
-                    </li>
-    
-                    <li class="nav-item">
-                        <a class="nav-link collapsed" href="index.html">
-                        <i class="bi bi-grid"></i>
-                        <span>Reciepts</span>
+                        <span>Appointments History</span>
                         </a>
                     </li>
     

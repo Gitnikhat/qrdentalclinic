@@ -57,7 +57,7 @@ const Profile = () => {
         <div>
             <main id="main" className="main">
                 <div className="pagetitle">
-                    <h1>Dashboard</h1>
+                    <h1>Profile</h1>
                     <nav>
                         <ol className="breadcrumb">
                             <li className="breadcrumb-item"><a href="/dashboard">Home</a></li>

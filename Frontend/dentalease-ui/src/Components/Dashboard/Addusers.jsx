@@ -58,7 +58,7 @@ const Addusers = (props) => {
                <main id="main" class="main">
     
                     <div class="pagetitle">
-                    <h1>Dashboard </h1>
+                    <h1>System Users </h1>
                     <nav>
                         <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
@@ -74,9 +74,9 @@ const Addusers = (props) => {
                             <div class="card">
                                 <div class="card-body">
                                 <div className="add-btn-holder">
-                                    <a href="/add-new-system-users" className="btn btn-custom btn-lg page-scroll">Add System Users</a>
+                                    <a href="/add-new-system-users" className="btn btn-custom btn-lg page-scroll small-font">Add System Users</a>
                                 </div>
-
+                                <div className="scroll-div">
                                 <table class="table datatable">
                                     <thead>
                                     <tr>
@@ -107,6 +107,9 @@ const Addusers = (props) => {
                                         : "Loading..."}
                                     </tbody>
                                 </table>
+                                </div>
+
+                                
                                 </div>
                             </div>
 

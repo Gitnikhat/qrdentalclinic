@@ -59,7 +59,7 @@ const Dashboardbody = (props) => {
                <main id="main" class="main">
     
                     <div class="pagetitle">
-                    <h1>Dashboard </h1>
+                    <h1>Treatments </h1>
                     <nav>
                         <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
@@ -75,10 +75,10 @@ const Dashboardbody = (props) => {
           <div class="card">
             <div class="card-body">
               <div className="add-btn-holder">
-                <a href="/add-new-treatments" className="btn btn-custom btn-lg page-scroll">Add Treatments</a>
+                <a href="/add-new-treatments" className="btn btn-custom btn-lg page-scroll small-font">Add Treatments</a>
               </div>
-
-              <table class="table datatable">
+            <div className="scroll-div">
+            <table class="table datatable">
                 <thead>
                   <tr>
                     <th>Name</th>
@@ -107,6 +107,8 @@ const Dashboardbody = (props) => {
                 </tbody>
               </table>
             </div>
+             
+            </div>
           </div>
 
         </div>
@@ -122,7 +124,7 @@ const Dashboardbody = (props) => {
                <main id="main" class="main">
     
                     <div class="pagetitle">
-                    <h1>Dashboard </h1>
+                    <h1>Treatments </h1>
                     <nav>
                         <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>
@@ -179,7 +181,7 @@ const Dashboardbody = (props) => {
                <main id="main" class="main">
     
                     <div class="pagetitle">
-                    <h1>Dashboard </h1>
+                    <h1>Traetments </h1>
                     <nav>
                         <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/dashboard">Home</a></li>

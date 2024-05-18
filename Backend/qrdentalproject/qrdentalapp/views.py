@@ -11,6 +11,8 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django.core.files import File
 
 import os
 import uuid
@@ -19,6 +21,13 @@ from .appconstants.responseconstants import *
 from .models import *
 
 import pyqrcode
+
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.units import inch
+
 
 USER_TYPES_MAP = {
    '1': "Admin",
@@ -438,7 +447,7 @@ class BookAppointmentView(APIView):
         self.generate_appointment_qr(obj.uu)
 
         booked_slots_count = time_slot_record.booked_slots
-        print(f"booked slots count {booked_slots_count}")
+        print(f"booked slots count booking {booked_slots_count}")
         if booked_slots_count < time_slot_record.max_slots:
             booked_slots_count += 1
             time_slot_record.booked_slots = booked_slots_count
@@ -451,7 +460,7 @@ class BookAppointmentView(APIView):
 
         mail_sent = send_email(
             f"Appointment booked for {treatment.name} on {formatted_date}",
-            f"Hi {patient.name}, \n Your appointment request is recieved. \n Treatment: {treatment.name} \n Date: {formatted_date} \n Appointment Status: {obj.status} \n You can use the below QR Code, {obj.appointment_qr.url} \n\n Please Note: A consultation fee of Rs. 150/- will be charged irrespective of the treatment.",
+            f"Hi {patient.name}, \n Your appointment request is recieved. \n Treatment: {treatment.name} \n Date: {formatted_date} \n Appointment Status: {obj.status} \n\n\n Please Note: A consultation fee of Rs. 150/- will be charged irrespective of the treatment.",
             to_email=['dentaleaseclinic@gmail.com', patient.email]
         )
         if mail_sent:
@@ -498,6 +507,10 @@ class BookAppointmentView(APIView):
         data = []
         if records:
             for each in records:
+                try:
+                    reciept = Reciept.objects.get(appointment_id = each.id)
+                except ObjectDoesNotExist:
+                    reciept = None
                 data.append({
                     'id': each.id,
                     'uuid': each.uu,
@@ -509,6 +522,7 @@ class BookAppointmentView(APIView):
                     'doctor_remark': each.doctor_remark,
                     'qr': each.appointment_qr.url,  
                     'status': each.status,
+                    'invoice_url': "http://localhost:8000/" + reciept.reciept_file.url if reciept else "",
                     'cancel_url': "http://localhost:8000/cancel/appointment?id=" + str(each.uu)
                 })
         return data_and_status_response(data, status.HTTP_200_OK)
@@ -546,6 +560,140 @@ def cancel_booking(request):
         obj.save()
         return msg_and_status_response("Appointment cancelled and email sent!", status.HTTP_201_CREATED)
     return msg_and_status_response("Appointment could not be cancelled!", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def update_booking(request):
+    print(f"Request data update book appointment: {request.data}")
+    id = request.data.get("id")
+    ba = BookAppointmentView()
+    print(1)
+    try:
+        print(1.1)
+        print(type(id))
+        obj = Appointments.objects.get(id=id)
+        print(obj.uu)
+        print(1.2)
+    except ObjectDoesNotExist:
+        print(1.3)
+        return msg_and_status_response("No appointment exist!", status.HTTP_204_NO_CONTENT)
+    
+    doc_remark = request.data.get('doctor_remark', None)
+    obj.doctor_remark = doc_remark
+    # obj.save()
+    # create reciept
+
+    print(2)
+
+    mail_sent = send_email(
+        f"Appointment completed for {obj.treatment.name} on {obj.time_slot.date}",
+        f"Hi {obj.patient.name}, \n Your appointment has been completed. \n Treatment: {obj.treatment.name} \n Date: {obj.time_slot.date} \n Appointment Status: {ba.COMPLETED} \n Doctor Remark: {obj.doctor_remark} \n\n Feel free to reach out for any query.",
+        to_email=['dentaleaseclinic@gmail.com', obj.patient.email]
+    )
+    print(f"mail sent : {mail_sent}")
+    if mail_sent:
+        obj.status = ba.COMPLETED
+        obj.save()
+        create_reciept(obj.id, 100)
+        return msg_and_status_response("Appointment completed and email sent!", status.HTTP_201_CREATED)
+    return msg_and_status_response("Appointment could not be completed!", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def create_reciept(appointment_id, paid_amt):
+    data = {
+        "uu": uuid.uuid4(),
+        "reciept_date": datetime.today(),
+        "appointment_id": appointment_id,
+        "paid_amount":paid_amt,
+        "payment_mode":"cash/upi"
+    }
+     # reciept_file = ""
+    obj = Reciept.objects.create(**data)
+    print(obj.uu)
+    generate_invoice(obj.uu)
+    return True
+
+
+def generate_invoice(receipt_id):
+    receipt = get_object_or_404(Reciept, uu=receipt_id)
+    appointment = receipt.appointment
+
+    filename = f"invoice_{receipt_id}.pdf"
+    file_path = os.path.join(settings.MEDIA_ROOT, filename)
+
+    doc = SimpleDocTemplate(file_path, pagesize=letter)
+
+    # Styles
+    styles = getSampleStyleSheet()
+    title_style = styles['Title']
+    normal_style = styles['Normal']
+
+    new_line = Paragraph("        ", title_style)
+    #footer
+    footer = Paragraph("Note: This is a system generated reciept, Does not need any signatures.", normal_style)
+    
+    # Title
+    title = Paragraph("Dentalease Invoice", title_style)
+
+    # Receipt Info
+    receipt_info = [
+        ["Receipt Date:", receipt.reciept_date.strftime("%Y-%m-%d")],
+        ["Appointment ID:", str(appointment.uu)],
+        ["Paid Amount:", f"${receipt.paid_amount:.2f}"],
+        ["Payment Mode:", receipt.get_payment_mode_display()],
+    ]
+
+    receipt_table = Table(receipt_info, colWidths=[2 * inch, 4 * inch])
+    receipt_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    # Appointment Info
+    appointment_info = [
+        ["Treatment:", appointment.treatment.name],
+        ["Time Slot:", str(appointment.time_slot.date)],
+        ["Patient:", appointment.patient.name],
+        ["Patient Remark:", appointment.patient_remark],
+        ["Doctor Remark:", appointment.doctor_remark],
+        ["Status:", appointment.status],
+    ]
+
+    appointment_table = Table(appointment_info, colWidths=[2 * inch, 4 * inch])
+    appointment_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    # Build the PDF
+    elements = [title, new_line, new_line, receipt_table, new_line, new_line, Paragraph("Appointment Details", title_style), new_line, new_line, appointment_table, new_line,new_line, new_line, new_line, new_line, new_line, new_line, footer]
+    doc.build(elements)
+
+    # Save the file path to the model
+    with open(file_path, 'rb') as pdf_file:
+        receipt.reciept_file.save(filename, File(pdf_file))
+
+    receipt.save()
+
+    # Optionally return the PDF directly to the client
+    # with open(file_path, 'rb') as pdf_file:
+    #     response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+    #     response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    #     return response
+
+    # If you don't want to return the file directly, redirect or render a template
+    # return redirect('some-view')
+
 
 
 @api_view(['GET'])
@@ -590,4 +738,87 @@ def get_patients_data(request):
         return data_and_status_response(data, status.HTTP_200_OK)
 
 
+@api_view(['GET'])
+def get_total_appointments(request):
+    ba = BookAppointmentView()
+    records = Appointments.objects.all()
+    data = {
+        "total": records.count(),
+        "completed": records.filter(status= ba.COMPLETED).count(),
+        "cancelled": records.filter(status= ba.CANCELLED).count(),
+        "pending": records.filter(status= ba.PENDING_FOR_APPROVAL).count()
+    }
+    print(data)
+    return data_and_status_response(data, status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_upcoming_appointments(request):
+    ba = BookAppointmentView()
+    date = request.GET.get("date")
+    records = Appointments.objects.filter(time_slot__date = date)
+    data = []
+    if records:
+        for each in records:
+            data.append({
+                "date": each.time_slot.date,
+                "patient_name": each.patient.name,
+                "treatment": each.treatment.name
+            })
+    else:
+        data.append({
+                "date": "",
+                "patient_name": "",
+                "treatment": ""
+            })
+    print(data)
+    return data_and_status_response(data, status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_total_active_patients(request):
+    records = Patient.objects.all()
+    data = {
+        "total": records.count()
+    }
+    print(data)
+    return data_and_status_response(data, status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_total_appointments_user(request):
+    patient_id = request.GET.get("patient-id")
+    ba = BookAppointmentView()
+    records = Appointments.objects.filter(patient_id= patient_id)
+    data = {
+        "total": records.count(),
+        "completed": records.filter(status= ba.COMPLETED).count(),
+        "cancelled": records.filter(status= ba.CANCELLED).count(),
+        "pending": records.filter(status= ba.PENDING_FOR_APPROVAL).count()
+    }
+    print(data)
+    return data_and_status_response(data, status.HTTP_200_OK)
+
+
+
+@api_view(['GET'])
+def get_upcoming_appointments_patient(request):
+    ba = BookAppointmentView()
+    date = request.GET.get("date")
+    patient_id = request.GET.get("patient_id")
+    records = Appointments.objects.filter(time_slot__date = date, patient_id=patient_id)
+    data = []
+    if records:
+        for each in records:
+            data.append({
+                "date": each.time_slot.date,
+                "doctor_remark": each.doctor_remark,
+                "treatment": each.treatment.name
+            })
+    else:
+        data.append({
+                "date": "",
+                "doctor_remark": "",
+                "treatment": ""
+            })
+    print(data)
+    return data_and_status_response(data, status.HTTP_200_OK)
 

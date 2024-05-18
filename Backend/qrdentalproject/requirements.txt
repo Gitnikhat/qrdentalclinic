@@ -8,3 +8,4 @@ pypng
 django-cors-headers==4.3.1
 mysqlclient
 pytz
+reportlab

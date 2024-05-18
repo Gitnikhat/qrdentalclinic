@@ -42,8 +42,8 @@ APPOINTMENT_STATUS_TYPES = (
 )
 
 
-CASH = 'C'
-ONLINE = 'O'
+CASH = 'Cash'
+ONLINE = 'Online'
 
 PAYMENT_MODES = (
     (CASH, "Cash"),
@@ -129,11 +129,12 @@ class Appointments(models.Model):
     
 
 class Reciept(models.Model):
-    uu = models.UUIDField(unique=True, default=uuid4())
+    uu = models.UUIDField()
     reciept_date = models.DateField(auto_now_add= True)
     appointment = models.ForeignKey(Appointments, on_delete= models.CASCADE)
     paid_amount = models.FloatField()
-    payment_mode = models.CharField(choices= PAYMENT_MODES, max_length=1)
+    payment_mode = models.CharField(choices= PAYMENT_MODES, max_length=20)
+    reciept_file = models.FileField(default=None, null=True, blank=True) 
 
     def __str__(self):
         return self.appointment.patient.name + " - " + self.appointment.treatment.name + " - " + self.reciept_date

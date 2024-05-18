@@ -27,6 +27,8 @@ import Manageprofile from './Components/Dashboard/Manageprofile';
 import Viewfaq from './Components/Dashboard/Viewfaq';
 import Manageappointments from './Components/Dashboard/Manageappointments';
 import Bookappointment from './Components/Dashboard/Bookappointment';
+import Userbookappointment from './Components/Dashboard/Userbookappointment';
+import Userappointment from './Components/Dashboard/Userappointment';
 
 
 const router = createBrowserRouter([
@@ -189,6 +191,32 @@ const router = createBrowserRouter([
   {
     path: "book-appointment",
     element: <Bookappointment />,
+    css: () => [
+      import('./Components/Dashboard/css-utils/bootstrap/css/bootstrap.min.css'), 
+      import('./Components/Dashboard/css-utils/bootstrap-icons/bootstrap-icons.css'), 
+      import('./Components/Dashboard/css-utils/boxicons/css/boxicons.min.css'), 
+      import('./Components/Dashboard/css-utils/quill/quill.snow.css'), 
+      import('./Components/Dashboard/css-utils/quill/quill.bubble.css'), 
+      import('./Components/Dashboard/css-utils/remixicon/remixicon.css'), 
+      import('./Components/Dashboard/css-utils/simple-datatables/style.css'), 
+    ]
+  },
+  {
+    path: "appointmentshistory",
+    element: <Userbookappointment />,
+    css: () => [
+      import('./Components/Dashboard/css-utils/bootstrap/css/bootstrap.min.css'), 
+      import('./Components/Dashboard/css-utils/bootstrap-icons/bootstrap-icons.css'), 
+      import('./Components/Dashboard/css-utils/boxicons/css/boxicons.min.css'), 
+      import('./Components/Dashboard/css-utils/quill/quill.snow.css'), 
+      import('./Components/Dashboard/css-utils/quill/quill.bubble.css'), 
+      import('./Components/Dashboard/css-utils/remixicon/remixicon.css'), 
+      import('./Components/Dashboard/css-utils/simple-datatables/style.css'), 
+    ]
+  },
+  {
+    path: "user-book-appointment",
+    element: <Userappointment />,
     css: () => [
       import('./Components/Dashboard/css-utils/bootstrap/css/bootstrap.min.css'), 
       import('./Components/Dashboard/css-utils/bootstrap-icons/bootstrap-icons.css'), 

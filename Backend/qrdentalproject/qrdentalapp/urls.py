@@ -26,9 +26,16 @@ urlpatterns = [
 
     path("appointments", BookAppointmentView.as_view()),
     path("cancel/appointment", views.cancel_booking),
-
+    path("update-appointment", views.update_booking),
 
     path("send-contact-email", views.send_contactus_mail),
+
+    path("total-appointments", views.get_total_appointments),
+    path("upcoming-appointments", views.get_upcoming_appointments),
+    path("total-patients-count", views.get_total_active_patients),
+
+    path("user/total-appointments", views.get_total_appointments_user),
+    path("user/upcoming-appointments", views.get_upcoming_appointments_patient),
 
 
 ]

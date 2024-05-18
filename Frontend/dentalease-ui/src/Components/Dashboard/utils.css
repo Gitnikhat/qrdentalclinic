@@ -120,4 +120,55 @@
     width: 80px;
     border: none;
     outline: none;
+    font-size: 9px;
+    margin-bottom: 5px;
+}
+
+.update-btn {
+    background: cadetblue;
+    color: white;
+    padding: 5px;
+    border-radius: 10px;
+    width: 80px;
+    border: none;
+    outline: none;
+    font-size: 9px;
+}
+
+.center-align-div{
+    text-align: center;
+    padding: 10px;
+}
+
+.center-align-no-padding{
+    text-align: center;
+}
+
+.small-font{
+    font-size: 9px;
+}
+
+.scroll-div{
+    height: 150px;
+    overflow: scroll;
+}
+
+.datatable th,
+.datatable td{
+    font-size: 11px;
+}
+
+.fixed-height-card{
+    height: 250px;
+}
+
+.blank-style{
+    border: none;
+    outline: none;
+    box-shadow: none;
+    width: 120px;
+}
+
+.fixed-height-card-small{
+    height: 150px;
 }
