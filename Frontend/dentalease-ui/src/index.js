@@ -10,6 +10,8 @@ import ForgotPassword from './Components/Authentication/ForgotPassword';
 import Managetreatments from './Components/Dashboard/Managetreatments';
 import Addtreatments from './Components/Dashboard/Addtreatments';
 
+import { UserProvider } from './Components/Usercontext';
+
 import './index.css';
 
 
@@ -29,6 +31,7 @@ import Manageappointments from './Components/Dashboard/Manageappointments';
 import Bookappointment from './Components/Dashboard/Bookappointment';
 import Userbookappointment from './Components/Dashboard/Userbookappointment';
 import Userappointment from './Components/Dashboard/Userappointment';
+import Monthlyreport from './Components/Dashboard/Monthlyreport';
 
 
 const router = createBrowserRouter([
@@ -226,6 +229,19 @@ const router = createBrowserRouter([
       import('./Components/Dashboard/css-utils/remixicon/remixicon.css'), 
       import('./Components/Dashboard/css-utils/simple-datatables/style.css'), 
     ]
+  },
+  {
+    path: "monthly-report",
+    element: <Monthlyreport />,
+    css: () => [
+      import('./Components/Dashboard/css-utils/bootstrap/css/bootstrap.min.css'), 
+      import('./Components/Dashboard/css-utils/bootstrap-icons/bootstrap-icons.css'), 
+      import('./Components/Dashboard/css-utils/boxicons/css/boxicons.min.css'), 
+      import('./Components/Dashboard/css-utils/quill/quill.snow.css'), 
+      import('./Components/Dashboard/css-utils/quill/quill.bubble.css'), 
+      import('./Components/Dashboard/css-utils/remixicon/remixicon.css'), 
+      import('./Components/Dashboard/css-utils/simple-datatables/style.css'), 
+    ]
   }
 
 ]);
@@ -233,7 +249,9 @@ const router = createBrowserRouter([
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <UserProvider> 
+      <RouterProvider router={router} />
+    </UserProvider>
   </React.StrictMode>
 );
 

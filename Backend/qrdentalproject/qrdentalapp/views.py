@@ -59,8 +59,15 @@ class LoginView(APIView):
         if user is not None:
             login(request, user)
             record = DentaleaseUsers.objects.get(user= user)
+            user_id = record.id
+
+            if record.user_type == '3':
+                user_id = Patient.objects.get(email = record.user.email).uu
+
             data = {
-                "user_type": USER_TYPES_MAP.get(record.user_type)
+                "user_type": USER_TYPES_MAP.get(record.user_type),
+                "user_id": user_id,
+                "user_name":record.name
             }
             return data_and_status_response(data, status.HTTP_200_OK)
         else:
@@ -83,10 +90,16 @@ class RegisterPatient(APIView):
             'email': request.data.get('email', None),
         }
         password = request.data.get('password', None)
-        obj = Patient.objects.create(**data)
-        self.generate_profile_qr(obj.uu)
-        self.create_user(obj.uu, password)
-        return  msg_and_status_response("Patient created", status.HTTP_201_CREATED)
+        if data.get('email') is None:
+            return  msg_and_status_response("Cannot create patient without email", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            Patient.objects.get(email= data['email'])
+            return  msg_and_status_response("Patient email already registered", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except ObjectDoesNotExist:
+            obj = Patient.objects.create(**data)
+            self.generate_profile_qr(obj.uu)
+            self.create_user(obj.uu, password)
+            return  msg_and_status_response("Patient created", status.HTTP_201_CREATED)
 
     def generate_profile_qr(self, uu):
         new_profile = Patient.objects.get(uu=uu)
@@ -116,7 +129,8 @@ class RegisterPatient(APIView):
         print("new profile,", new_profile)
         user = User.objects.create_user(new_profile.email, new_profile.email, password)
         user_data = {
-            "user": user
+            "user": user,
+            "name": new_profile.name
         }
         DentaleaseUsers.objects.create(**user_data)
         return True
@@ -125,7 +139,8 @@ class RegisterPatient(APIView):
 @api_view(['GET'])
 def view_profile(request):
     import uuid
-    uu = uuid.UUID(request.GET.get('id'))
+    id = request.GET.get('id')
+    uu = uuid.UUID(id)
     print(uu)
     record = None
     try:
@@ -408,16 +423,19 @@ class BookAppointmentView(APIView):
 
     def post(self, request):
         print(f"Request data book appointment: {request.data}")
+        patient_id = request.data.get("patient", None)
+        if type(patient_id) != int:
+            patient_id = Patient.objects.get(uu= patient_id).id
+            
         data = {
             "uu": uuid.uuid4(),
             "treatment_id": request.data.get("treatment", None),
-            "patient_id": request.data.get("patient", None),
+            "patient_id": patient_id,
             "patient_remark": request.data.get("patient_remark", ""),
             "doctor_remark": request.data.get("doctor_remark", ""),
-            "status": self.PENDING_FOR_APPROVAL
+            "status": self.CONFIRMED
         }
 
-        
         user_type = request.data.get("user_type", "")
         if user_type == "Admin":
             data['status'] = self.CONFIRMED
@@ -490,13 +508,17 @@ class BookAppointmentView(APIView):
             print("Error saving QR Code:", e)
 
     def get(selg, request):
+        print("Request get", request.GET)
         id = request.GET.get("id", None)
         start_date = request.GET.get("from", None)
         end_date = request.GET.get("to", None)
         selected_date = request.GET.get("selectdate", None)
+        patient_id = request.GET.get("patient-id", None)
 
         if id:
             records = Appointments.objects.filter(id = id)
+        elif patient_id:
+            records = Appointments.objects.filter(patient__uu= patient_id)
         elif selected_date:
             records = Appointments.objects.filter(time_slot_date = selected_date)
         elif start_date and end_date:
@@ -755,7 +777,11 @@ def get_total_appointments(request):
 def get_upcoming_appointments(request):
     ba = BookAppointmentView()
     date = request.GET.get("date")
-    records = Appointments.objects.filter(time_slot__date = date)
+    statuses = [ba.COMPLETED, ba.CANCELLED]
+    original_date = datetime.strptime(date, "%Y-%m-%d")
+
+    new_date = original_date + timedelta(days=1)
+    records = Appointments.objects.filter(time_slot__date = new_date).exclude(status__in= statuses)
     data = []
     if records:
         for each in records:
@@ -786,8 +812,9 @@ def get_total_active_patients(request):
 @api_view(['GET'])
 def get_total_appointments_user(request):
     patient_id = request.GET.get("patient-id")
+    uu = uuid.UUID(patient_id)
     ba = BookAppointmentView()
-    records = Appointments.objects.filter(patient_id= patient_id)
+    records = Appointments.objects.filter(patient__uu= uu)
     data = {
         "total": records.count(),
         "completed": records.filter(status= ba.COMPLETED).count(),
@@ -800,11 +827,16 @@ def get_total_appointments_user(request):
 
 
 @api_view(['GET'])
-def get_upcoming_appointments_patient(request):
+def get_upcoming_appointments_user(request):
+    print("in here")
     ba = BookAppointmentView()
     date = request.GET.get("date")
-    patient_id = request.GET.get("patient_id")
-    records = Appointments.objects.filter(time_slot__date = date, patient_id=patient_id)
+    patient_id = request.GET.get("patient-id")
+    statuses = [ba.COMPLETED, ba.CANCELLED]
+    original_date = datetime.strptime(date, "%Y-%m-%d")
+
+    new_date = original_date + timedelta(days=1)
+    records = Appointments.objects.filter(time_slot__date = new_date, patient__uu=patient_id).exclude(status__in= statuses)
     data = []
     if records:
         for each in records:
@@ -819,6 +851,91 @@ def get_upcoming_appointments_patient(request):
                 "doctor_remark": "",
                 "treatment": ""
             })
+    print("patient:", data)
+    return data_and_status_response(data, status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_monthly_report(request):
+    month = request.GET.get("month", 0)
+    year = request.GET.get("year", 0)
+    
+    report = generate_monthly_report(int(month), int(year))
+    data = {
+        "pdf_url": "http://localhost:8000/" + report.report_file.url
+    }
     print(data)
     return data_and_status_response(data, status.HTTP_200_OK)
 
+
+def generate_monthly_report(month, year):
+    # Fetch all receipts for the selected month and year
+    start_date = datetime(year, month, 1)
+    end_date = datetime(year, month + 1, 1) if month < 12 else datetime(year + 1, 1, 1)
+    receipts = Reciept.objects.filter(reciept_date__gte=start_date, reciept_date__lt=end_date)
+
+    if not receipts.exists():
+        return None
+
+    # Calculate total amount paid
+    total_amount = sum(receipt.paid_amount for receipt in receipts)
+
+    # Generate PDF
+    filename = f"monthly_report_{year}_{month}.pdf"
+    file_path = os.path.join(settings.MEDIA_ROOT, filename)
+
+    doc = SimpleDocTemplate(file_path, pagesize=letter)
+
+    # Styles
+    styles = getSampleStyleSheet()
+    title_style = styles['Title']
+    normal_style = styles['Normal']
+
+    # Title
+    title = Paragraph(f"Dentalease Monthly Report for {datetime(year, month, 1).strftime('%B %Y')}", title_style)
+
+    # Table Data
+    table_data = [
+        ["Date", "Treatment", "Patient Name", "Amount Paid", "Status"]
+    ]
+    for receipt in receipts:
+        appointment = receipt.appointment
+        row = [
+            appointment.time_slot.date.strftime("%Y-%m-%d"),
+            appointment.treatment.name,
+            appointment.patient.name,
+            f"${receipt.paid_amount:.2f}",
+            appointment.status,
+        ]
+        table_data.append(row)
+
+    # Total Row
+    total_row = ["", "", "Total", f"${total_amount:.2f}", ""]
+    table_data.append(total_row)
+
+    # Table
+    table = Table(table_data, colWidths=[1 * inch, 1.5 * inch, 1.5 * inch, 1 * inch, 1.5 * inch])
+
+    # table = Table(table_data, colWidths=[1.5 * inch, 2 * inch, 2 * inch, 1.5 * inch, 2 * inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    # Build the PDF
+    elements = [title, table]
+    doc.build(elements)
+
+    # Save the file path to the MonthlyReport model
+    monthly_report, created = MonthlyReport.objects.get_or_create(month=month, year=year)
+    with open(file_path, 'rb') as pdf_file:
+        monthly_report.report_file.save(filename, File(pdf_file))
+    monthly_report.total_amount = total_amount
+    monthly_report.save()
+
+    return monthly_report

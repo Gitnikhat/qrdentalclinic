@@ -4,20 +4,22 @@ import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { FaDownload } from 'react-icons/fa'; 
-
+import { useUser } from "../Usercontext";
 
 import './dashboard.css';
 import './utils.css';
 
 const Userappointment = (props) => {
     const navigate = useNavigate();
+    const { userData } = useUser();
+    const { user_id} = userData;
     const [appointments, setAppointments] = useState([]);
     const [treatments, setTreatments] = useState([]);
     const [patients, setPatients] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [formData, setFormData] = useState({
         treatment: '',
-        patient: '',
+        patient: user_id,
         timeslot: selectedDate,
         patient_remark: '',
         doctor_remark: '',
@@ -36,7 +38,7 @@ const Userappointment = (props) => {
 
     const fetchAppointments = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/appointments');
+            const response = await axios.get(`http://localhost:8000/appointments?patient-id=${user_id}`);
             if (response.status === 200) {
                 setAppointments(response.data.data);
             }
@@ -58,7 +60,7 @@ const Userappointment = (props) => {
 
     const fetchPatients = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/patient');
+            const response = await axios.get(`http://localhost:8000/patient?id=${user_id}`);
             if (response.status === 200) {
                 setPatients(response.data.data);
             }
@@ -107,7 +109,7 @@ const Userappointment = (props) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:8000/appointments', formData);
+            const response = await axios.post(`http://localhost:8000/appointments`, formData);
             if (response.status === 200) {
                 fetchAppointments(); // Reload appointments after adding new appointment
                 setShowForm(false); // Hide the form after submission

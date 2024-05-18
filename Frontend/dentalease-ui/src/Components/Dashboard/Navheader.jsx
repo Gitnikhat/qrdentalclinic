@@ -1,25 +1,13 @@
 import React from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 import './dashboard.css';
 
-const Navheader = () => {
+import { useUser } from "../Usercontext";
 
-    // const handleLogout = (e) => {
-    //     e.preventdefault()
-    //     const navigate = useNavigate();
-    //     return async () => {
-    //         try {
-    //             const response = await axios.get('/logout');
-    //             if (response.status === 200) {
-    //                 navigate("/");
-    //             }
-    //         } catch (error) {
-    //             console.error('Error deleting resource:', error);
-    //         }
-    //     };
-    // };
+const Navheader = () => {
+    const { userData } = useUser();
+    const { user_name} = userData;
+
 
     return (
         <div>
@@ -43,7 +31,7 @@ const Navheader = () => {
                         <li class="nav-item dropdown pe-3">
 
                         <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-                            <span class="d-none d-md-block dropdown-toggle ps-2">Logged In user</span>
+                            <span class="d-none d-md-block dropdown-toggle ps-2">{user_name}  {"  "}</span>
                         </a>
 
                         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">

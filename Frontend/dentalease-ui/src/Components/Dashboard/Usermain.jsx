@@ -5,7 +5,14 @@ import "react-datepicker/dist/react-datepicker.css";
 import './dashboard.css';
 import './utils.css';
 
+import { useUser } from "../Usercontext";
+
 const Usermain = (props) => {
+    const { userData } = useUser();
+    const { user_id} = userData;
+
+    console.log(user_id, "user id")
+
     const [totalAppointments, setTotalAppointments] = useState({
         total: 0,
         completed: 0,
@@ -25,7 +32,7 @@ const Usermain = (props) => {
 
     const fetchTotalAppointments = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/user/total-appointments');
+            const response = await axios.get(`http://localhost:8000/user/total-appointments?patient-id=${user_id}`);
             setTotalAppointments(response.data.data);
         } catch (error) {
             console.error('Error fetching total appointments:', error);
@@ -35,7 +42,7 @@ const Usermain = (props) => {
 
     const fetchUpcomingAppointments = async (date) => {
         try {
-            const response = await axios.get(`http://localhost:8000/user/upcoming-appointments?date=${date.toISOString().split('T')[0]}`);
+            const response = await axios.get(`http://localhost:8000/patient/upcoming-appointments?date=${date.toISOString().split('T')[0]}&patient-id=${user_id}`);
             setUpcomingAppointments(response.data.data);
         } catch (error) {
             console.error('Error fetching upcoming appointments:', error);

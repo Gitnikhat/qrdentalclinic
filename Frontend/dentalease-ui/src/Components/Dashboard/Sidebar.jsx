@@ -46,12 +46,12 @@ const Sidebar = (props) => {
                         </a>
                     </li>
     
-                    {/* <li class="nav-item">
-                        <a class="nav-link collapsed" href="pages-contact.html">
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="/monthly-report">
                         <i class="bi bi-envelope"></i>
-                        <span>Contact Us</span>
+                        <span>Monthly Report</span>
                         </a>
-                    </li> */}
+                    </li>
     
                 </ul>
     

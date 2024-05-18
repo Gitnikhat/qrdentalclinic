@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
 import { FaUser, FaLock } from "react-icons/fa";
-
-// import './authentication.css';
+import { useUser } from '../Usercontext'; // Import the useUser hook
 
 const LoginForm = () => {
     const navigate = useNavigate();
+    const { setUser } = useUser(); // Access setUser method from the UserContext
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -21,11 +20,12 @@ const LoginForm = () => {
         e.preventDefault();
         try {
             const response = await axios.post('http://localhost:8000/login', formData);
-            console.log('Login Response:', response.data.data.user_type);
             if (response.status === 200) {
                 console.log("200")
-                console.log('Logged in user:', response.data.user_type);
-                if (response.data.data.user_type == "Patient"){
+                const { user_id, user_type, user_name } = response.data.data;
+                console.log(user_id, user_type, user_name)
+                setUser(user_id, user_type, user_name); // Set user data globally
+                if (user_type === "Patient"){
                     navigate("/patientdashboard");
                 } else {
                     navigate("/admindashboard");

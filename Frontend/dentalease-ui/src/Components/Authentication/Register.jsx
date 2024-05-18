@@ -28,7 +28,7 @@ const Register = () => {
             console.log('Response:', response.data, "status: ", response.status);
             if (response.status === 200) {
                 console.log("200")
-                navigate("/dashboard");
+                navigate("/login");
             }
         } catch (error) {
             console.error('Error:', error);

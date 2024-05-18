@@ -35,7 +35,8 @@ urlpatterns = [
     path("total-patients-count", views.get_total_active_patients),
 
     path("user/total-appointments", views.get_total_appointments_user),
-    path("user/upcoming-appointments", views.get_upcoming_appointments_patient),
+    path("patient/upcoming-appointments", views.get_upcoming_appointments_user),
 
+    path("get-report", views.get_monthly_report),
 
 ]

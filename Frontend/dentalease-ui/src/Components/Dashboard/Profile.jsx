@@ -3,12 +3,15 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaLock, FaPhone, FaUser } from "react-icons/fa";
 import { MdMail } from "react-icons/md";
+import { useUser } from "../Usercontext";
 
 import './dashboard.css';
 import './utils.css';
 
 const Profile = () => {
     const navigate = useNavigate();
+    const { userData } = useUser();
+    const { user_id} = userData;
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -24,7 +27,7 @@ const Profile = () => {
         // Fetch profile data from the API
         const fetchProfileData = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/profile?id=13a6882f8ee541d7a24e1dda122aee38');
+                const response = await axios.get(`http://localhost:8000/profile?id=${user_id}`);
                 console.log("response profile:", response.data)
                 const { data } = response;
                 setFormData(data.data); // Accessing the nested data object
@@ -44,9 +47,10 @@ const Profile = () => {
         try {
             const response = await axios.post('http://localhost:8000/editprofile', formData);
             console.log('Response:', response.data, "status: ", response.status);
-            if (response.status === 201) {
+            if (response.status == 200) {
                 console.log("Profile updated successfully");
                 setEditing(false);
+                window.location.reload();
             }
         } catch (error) {
             console.error('Error updating profile:', error);

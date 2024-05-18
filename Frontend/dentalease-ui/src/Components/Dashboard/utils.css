@@ -145,7 +145,12 @@
 }
 
 .small-font{
-    font-size: 9px;
+    font-size: 9px !important;
+}
+
+.report-flex-div{
+    display: inline-block;
+    margin-left: 30%;
 }
 
 .scroll-div{
@@ -171,4 +176,13 @@
 
 .fixed-height-card-small{
     height: 150px;
+}
+
+.right-align-div{
+    text-align: right;
+}
+
+.pdf-doc-div{
+    text-align: center !important;
+    margin-left: 15%;
 }

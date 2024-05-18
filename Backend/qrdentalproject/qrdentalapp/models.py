@@ -140,3 +140,8 @@ class Reciept(models.Model):
         return self.appointment.patient.name + " - " + self.appointment.treatment.name + " - " + self.reciept_date
 
 
+class MonthlyReport(models.Model):
+    month = models.IntegerField()
+    year = models.IntegerField()
+    report_file = models.FileField(default=None, null=True, blank=True) 
+    total_amount = models.FloatField(default=None, null=True, blank=True)
