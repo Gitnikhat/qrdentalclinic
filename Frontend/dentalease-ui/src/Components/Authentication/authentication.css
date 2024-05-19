@@ -148,3 +148,8 @@
 .forgot-password a:hover, .register-link p a:hover, .go-back a:hover {
     text-decoration: underline;
 }
+
+.error-message {
+    color: red;
+    margin-top: 10px;
+}

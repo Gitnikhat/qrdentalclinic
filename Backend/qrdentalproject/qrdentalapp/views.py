@@ -13,6 +13,9 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.core.files import File
+import base64
+from django.core.mail import EmailMultiAlternatives
+from email.mime.image import MIMEImage
 
 import os
 import uuid
@@ -71,6 +74,7 @@ class LoginView(APIView):
             }
             return data_and_status_response(data, status.HTTP_200_OK)
         else:
+            print("else")
             return msg_and_status_response("Invalid credentials", status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['GET'])
@@ -344,18 +348,50 @@ def delete_treatment(request):
         print(ode)
         return msg_and_status_response("Treatment object does not exist", status.HTTP_204_NO_CONTENT)
 
+    
+def get_base64_encoded_image(image_path):
+    with open(image_path, 'rb') as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
-def send_email(subject, msg, to_email = ["dentaleaseclinic@gmail.com"]): 
+def send_email(subject, msg, qr_image_path=None, to_email=["dentaleaseclinic@gmail.com"]):
     try:
-        subject = subject
-        message = f'{msg} - Dentalease Clinic.'
-        email_from = settings.EMAIL_HOST_USER
-        recipient_list = to_email
-        send_mail( subject, message, email_from, recipient_list)
-        return True
+        if qr_image_path:
+            html_content = f"""
+            <html>
+                <body>
+                    <p>{msg}</p>
+                    <p>Use the below QR for quick access:</p>
+                    <img src="cid:qr_image" alt="QR Code">
+                    <p>- Dentalease Clinic</p>
+                </body>
+            </html>
+            """
+            
+            text_content = f'{msg} - Dentalease Clinic.'
+            
+            email = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, to_email)
+            email.attach_alternative(html_content, "text/html")
+
+            # Attach the QR image using MIMEImage
+            with open(qr_image_path, 'rb') as img:
+                qr_image = MIMEImage(img.read())
+                qr_image.add_header('Content-ID', '<qr_image>')
+                qr_image.add_header('Content-Disposition', 'inline', filename='qr_image.png')
+                email.attach(qr_image)
+
+            email.send()
+            return True
+        else:
+            subject = subject
+            message = f'{msg} - Dentalease Clinic.'
+            email_from = settings.EMAIL_HOST_USER
+            recipient_list = to_email
+            send_mail( subject, message, email_from, recipient_list)
+            return True
     except Exception as ex:
-        print(f"An exception has occured while sending the mail exception: {ex}")
+        print(f"An exception has occurred while sending the mail: {ex}")
         return False
+
     
 
 @api_view(['POST'])
@@ -462,7 +498,7 @@ class BookAppointmentView(APIView):
         obj = Appointments.objects.create(**data)
         print(obj.uu)
 
-        self.generate_appointment_qr(obj.uu)
+        ap_record = self.generate_appointment_qr(obj.uu)
 
         booked_slots_count = time_slot_record.booked_slots
         print(f"booked slots count booking {booked_slots_count}")
@@ -476,11 +512,14 @@ class BookAppointmentView(APIView):
         treatment = Treatments.objects.get(id = data['treatment_id'])
         patient = Patient.objects.get(id=data['patient_id'])
 
+        appointment_qr_path =  ap_record.appointment_qr.path
         mail_sent = send_email(
             f"Appointment booked for {treatment.name} on {formatted_date}",
-            f"Hi {patient.name}, \n Your appointment request is recieved. \n Treatment: {treatment.name} \n Date: {formatted_date} \n Appointment Status: {obj.status} \n\n\n Please Note: A consultation fee of Rs. 150/- will be charged irrespective of the treatment.",
+            f"Hi {patient.name}, \n\n Your appointment request is received. \n\n Treatment: {treatment.name} \n\n Date: {formatted_date} \n\n Appointment Status: {obj.status} \n\n\n Please Note: A consultation fee of Rs. 150/- will be charged irrespective of the treatment.",
+            qr_image_path=appointment_qr_path,
             to_email=['dentaleaseclinic@gmail.com', patient.email]
         )
+        print("mail_sent::", mail_sent)
         if mail_sent:
             return msg_and_status_response("Appointment booked and email sent!", status.HTTP_201_CREATED)
         return msg_and_status_response("Appointment could not be booked!", status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -504,8 +543,10 @@ class BookAppointmentView(APIView):
             appointment_record.appointment_qr = os.path.relpath(file_path, media_root) 
             appointment_record.save()
             print("QR Code saved successfully:", file_path)
+            return appointment_record
         except Exception as e:
             print("Error saving QR Code:", e)
+            return None
 
     def get(selg, request):
         print("Request get", request.GET)
@@ -780,7 +821,8 @@ def get_upcoming_appointments(request):
     statuses = [ba.COMPLETED, ba.CANCELLED]
     original_date = datetime.strptime(date, "%Y-%m-%d")
 
-    new_date = original_date + timedelta(days=1)
+    new_date = original_date 
+    # + timedelta(days=1)
     records = Appointments.objects.filter(time_slot__date = new_date).exclude(status__in= statuses)
     data = []
     if records:
@@ -835,7 +877,8 @@ def get_upcoming_appointments_user(request):
     statuses = [ba.COMPLETED, ba.CANCELLED]
     original_date = datetime.strptime(date, "%Y-%m-%d")
 
-    new_date = original_date + timedelta(days=1)
+    new_date = original_date 
+    # + timedelta(days=1)
     records = Appointments.objects.filter(time_slot__date = new_date, patient__uu=patient_id).exclude(status__in= statuses)
     data = []
     if records:

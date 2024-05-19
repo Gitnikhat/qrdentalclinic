@@ -76,7 +76,7 @@ const Usermain = (props) => {
                                     <div className="d-flex align-items-center">
                                         
                                         <div className="ps-3">
-                                            <h6>{totalAppointments.total}</h6>
+                                            <h6 className="total-c">{totalAppointments.total}</h6>
                                         </div>
                                     </div>
                                 </div>
@@ -91,7 +91,7 @@ const Usermain = (props) => {
                                     <div className="d-flex align-items-center">
                                         
                                         <div className="ps-3">
-                                            <h6>{totalAppointments.completed}</h6>
+                                            <h6 className="completed-c">{totalAppointments.completed}</h6>
                                         </div>
                                     </div>
                                 </div>
@@ -105,7 +105,7 @@ const Usermain = (props) => {
                                     <h5 className="card-title">Pending</h5>
                                     <div className="d-flex align-items-center">
                                         <div className="ps-3">
-                                            <h6>{totalAppointments.pending}</h6>
+                                            <h6 className="pending-c">{totalAppointments.pending}</h6>
                                         </div>
                                     </div>
                                 </div>
@@ -119,7 +119,7 @@ const Usermain = (props) => {
                                     <h5 className="card-title">Cancelled</h5>
                                     <div className="d-flex align-items-center">
                                         <div className="ps-3">
-                                            <h6>{totalAppointments.cancelled}</h6>
+                                            <h6 className="canceled-c">{totalAppointments.cancelled}</h6>
                                         </div>
                                     </div>
                                 </div>
@@ -134,14 +134,14 @@ const Usermain = (props) => {
                                 <div className="card-body">
                                     <h5 className="card-title">Upcoming Appointments</h5>
                                     <div className="d-flex justify-content-between align-items-center">
-                                        <button onClick={() => handleDateChange(new Date(selectedDate.setDate(selectedDate.getDate() - 1)))}>&lt;</button>
+                                        <button className="calendar-arrow" onClick={() => handleDateChange(new Date(selectedDate.setDate(selectedDate.getDate() - 1)))}>&lt;</button>
                                         <DatePicker
                                             selected={selectedDate}
                                             onChange={handleDateChange}
                                             dateFormat="dd/MM/yyyy"
                                             className="form-control blank-style"
                                         />
-                                        <button onClick={() => handleDateChange(new Date(selectedDate.setDate(selectedDate.getDate() + 1)))}>&gt;</button>
+                                        <button className="calendar-arrow" onClick={() => handleDateChange(new Date(selectedDate.setDate(selectedDate.getDate() + 1)))}>&gt;</button>
                                     </div>
                                     <div className="scroll-div">
                                         <table className="table datatable">

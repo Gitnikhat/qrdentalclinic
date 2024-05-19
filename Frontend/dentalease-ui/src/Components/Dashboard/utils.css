@@ -186,3 +186,55 @@
     text-align: center !important;
     margin-left: 15%;
 }
+
+.calendar-arrow{
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: cadetblue;
+    font-weight: bold;
+}
+
+.total-c{
+    font-size: large;
+    color: cadetblue;
+    font-weight: bold;
+}
+
+.completed-c{
+    font-size: large;
+    color: yellowgreen;
+    font-weight: bold;
+}
+
+.pending-c{
+    font-size: large;
+    color: yellow;
+    font-weight: bold;
+}
+
+.canceled-c{
+    font-size: large;
+    color: red;
+    font-weight: bold;
+}
+
+.total-s{
+    color: cadetblue;
+    /* font-weight: bold; */
+}
+
+.completed-s{
+    color: yellowgreen;
+    /* font-weight: bold; */
+}
+
+.pending-s{
+    color: yellow;
+    /* font-weight: bold; */
+}
+
+.canceled-s{
+    color: red;
+    /* font-weight: bold; */
+}

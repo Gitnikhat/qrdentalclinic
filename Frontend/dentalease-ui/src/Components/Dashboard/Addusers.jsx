@@ -10,7 +10,7 @@ import './dashboard.css';
 import './utils.css';
 
 const Addusers = (props) => {
-
+    const [msg, setMsg] = useState('');
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
@@ -28,9 +28,12 @@ const Addusers = (props) => {
         try {
             const response = await axios.post('http://localhost:8000/admin/systemusers', formData);
             console.log('Response:', response.data, "status: ", response.status);
-            if (response.status === 201) {
+            if (response.data.status === 201) {
                 console.log("200")
                 navigate("/manage-systemusers");
+            }else {
+                const { msg } = response.data; // Corrected this line
+                setMsg(msg); // Set the message in the state
             }
         } catch (error) {
             console.error('Error:', error);
@@ -163,7 +166,7 @@ const Addusers = (props) => {
                                     </select>
                                     <FaLock className="icon" />
                                 </div>
-
+                                {msg && <p className="error-message">{msg}</p>}
                                 <button className="btn btn-custom btn-lg" type="submit">Submit</button>  
 
                             </form>

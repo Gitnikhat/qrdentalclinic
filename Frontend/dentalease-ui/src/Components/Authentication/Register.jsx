@@ -8,6 +8,7 @@ import { MdMail } from "react-icons/md";
 import './authentication.css';
 
 const Register = () => {
+    const [msg, setMsg] = useState('');
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
@@ -25,10 +26,13 @@ const Register = () => {
         e.preventDefault();
         try {
             const response = await axios.post('http://localhost:8000/register', formData);
-            console.log('Response:', response.data, "status: ", response.status);
-            if (response.status === 200) {
+            console.log('Response:', response.data, "status: ", response.data.status);
+            if (response.data.status === 201 ) {
                 console.log("200")
                 navigate("/login");
+            } else {
+                const { msg } = response.data; // Corrected this line
+                setMsg(msg); // Set the message in the state
             }
         } catch (error) {
             console.error('Error:', error);
@@ -57,7 +61,7 @@ const Register = () => {
                         <input type="text" name="password" id="password" value={formData.password} onChange={handleChange} placeholder="Password" required/>
                         <FaLock className="icon" />
                     </div>
-
+                    {msg && <p className="error-message">{msg}</p>}
                     <button className="btn btn-custom btn-lg" type="submit">Register</button>  
 
                     <div className="go-back">

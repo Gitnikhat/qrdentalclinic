@@ -8,6 +8,7 @@ import './dashboard.css';
 import './utils.css';
 
 const Appointment = (props) => {
+    const [msg, setMsg] = useState('');
     const navigate = useNavigate();
     const [appointments, setAppointments] = useState([]);
     const [treatments, setTreatments] = useState([]);
@@ -142,6 +143,9 @@ const Appointment = (props) => {
             if (response.status === 200) {
                 fetchAppointments(); // Reload appointments after adding new appointment
                 setShowForm(false); // Hide the form after submission
+            } else {
+                const { msg } = response.data; // Corrected this line
+                setMsg(msg); // Set the message in the state
             }
         } catch (error) {
             console.error('Error adding appointment:', error);
@@ -282,6 +286,7 @@ const Appointment = (props) => {
                                                     <option value="Completed">Completed</option>
                                                 </select>
                                             </div>
+                                            {msg && <p className="error-message">{msg}</p>}
                                             <div className="center-align-div">
                                                 <button className="btn btn-custom btn-lg small-font" type="submit">Mark as completed</button>
                                             </div>
